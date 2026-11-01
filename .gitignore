@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+# Editors / OS
+.DS_Store
+*~
+.vscode/
+.idea/
+# Local personal collections and exports (do not commit private research data)
+Zettelkasten/
+Zettelkasten-Test*/
+*.bib
+# Keep the fictional bibliography fixture tracked
+!examples/sample_collection/references/library.bib
