@@ -52,4 +52,10 @@ EOF
 
 chmod 644 "$HOME/.local/share/applications/my-zettelkasten.desktop"
 
+echo
 echo "My Zettelkasten installed successfully."
+echo "Installed version:"
+"$APP_DIR/.venv/bin/python" -m zettelkasten --version
+echo
+echo "Launch from the Linux Mint menu or run:"
+echo "  $HOME/.local/bin/my-zettelkasten"

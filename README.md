@@ -1,4 +1,4 @@
-<p align="center">
+ <p align="center">
   <img src="assets/branding/logo-banner.svg"
        alt="My Zettelkasten"
        width="700">
@@ -6,80 +6,142 @@
 
 A lightweight, local-first Markdown note editor for **connecting ideas, papers, and projects**. Built with Python and Tkinter, inspired by the Zettelkasten workflow discussed in Sönke Ahrens’s *How to Take Smart Notes*.
 
-**Version 0.5.3 — experimental Linux pilot.** Tested by the project author on Linux Mint; other platforms are not yet verified. Back up your notes independently before relying on the application for important work.
+**Current version: 0.5.4 — experimental Linux pilot.**
+
+Tested by the project author on Linux Mint; other platforms are not yet verified. Back up your notes independently before relying on the application for important work.
 
 ![My Zettelkasten main window showing notes, editor, and links](screenshots/main_app.png)
 
 ## Why this application?
 
-Write notes in ordinary `.md` files, follow relationships between ideas, and retrieve useful thoughts later. The collection is readable without this program. The application is deliberately modest: it does not replace Zotero, a PDF reader, or a manuscript editor.
+My Zettelkasten helps you write, connect, and retrieve ideas using ordinary Markdown files.
+
+It is designed to support the development of ideas from reading and research through to writing, without locking your notes into a proprietary format. Your collection remains readable even without the application.
+
+The application is deliberately modest: it does not aim to replace Zotero, a PDF reader, or a manuscript editor.
 
 ### Features
 
+**Writing and connecting notes**
 - Markdown editor with **visible syntax** and live styling for headings, emphasis, links, code, and citations.
-- Idea, Paper, Overview, and Project notes with simple templates; stable note filenames.
+- Idea, Paper, Overview, and Project notes with simple templates and stable note filenames.
 - Fast `[[` note linking, backlinks, searchable inventory, pinned notes, and browser-style Back/Forward history.
+- An editable, pinned **Start here** tutorial for newly created collections.
+
+**Managing collections**
+- Create, open, and close collections directly from the application.
+- Store collections anywhere, including Dropbox or other synchronised folders.
+- Automatically reopen the last-used collection when starting the application.
+- Access up to 10 previously opened collections through **File → Recent Collections** or the welcome screen.
+- Identify the active collection by its name in the window title and its location in the status bar.
+- Manage collections without remembering command-line arguments.
+
+**References and attachments**
 - `[@` citation autocomplete using a **read-only** Better BibTeX export from Zotero.
-- Create or reopen Paper notes from bibliography entries; attach figures and PDFs as copied local files.
+- Create or reopen Paper notes from bibliography entries.
+- Attach figures and PDFs as copied local files.
+
+**Safety and usability**
 - Autosave, recovery copies, recoverable deletion, project archiving, and external-edit conflict warnings.
-- An editable, pinned **Start here** tutorial for newly created empty collections.
+- Helpful warnings when a collection is unavailable, without automatically recreating missing folders.
+- **Help → About My Zettelkasten** displays the installed application version.
+- `--version` command-line option for checking the installed version.
 
-## What's New in v0.5.3 — Recent Collections and Welcome Screen
+## Latest release
 
-My Zettelkasten v0.5.3 improves collection navigation and the first-run experience.
+**v0.5.4 — Version Information**
 
-### New features
+This release adds an About dialog and a command-line version option, making it easier to identify which version of My Zettelkasten is installed.
 
-- **Recent Collections:** Access up to 10 previously opened collections from File → Recent Collections.
-- **Improved welcome screen:** Create a new collection, open an existing collection, or select a recently used collection.
-- **Automatic reopening:** The last-used collection opens automatically when restarting the application.
-- **Collection history:** Recently opened collections remain available after closing a collection.
-- **Dropbox support:** Collections stored in Dropbox or other external directories can be opened without command-line arguments.
-- **Missing collections:** Unavailable collection folders produce a warning without deleting their history.
-- **Clear Recent Collections:** Remove collection history without affecting notes or collection folders.
-- **Updated onboarding:** The Start Here note now explains how to manage collections.
-
-### Compatibility
-
-Existing collections remain compatible. No migration or changes to note files are required.
+For previous improvements, including collection management and Recent Collections, see the [Changelog](CHANGELOG.md) or [GitHub Releases](https://github.com/MartinHeroux/personal-zettelkasten/releases).
 
 ## Installation (Linux Mint / Ubuntu)
 
-Requires **Python 3.10+**, Tkinter and Python virtual-environment support. On Mint/Ubuntu:
+My Zettelkasten requires Python 3.10+ and Tkinter. It has been tested on Linux Mint 22.3.
+
+### Recommended: Automatic installation
+
+The included installation script sets up My Zettelkasten as a desktop application, including its Python environment and Linux Mint application-menu launcher.
+
+Clone the repository:
 
 ```bash
-sudo apt update
-sudo apt install python3 python3-tk python3-venv
+git clone https://github.com/MartinHeroux/personal-zettelkasten.git
+cd personal-zettelkasten
 ```
 
-Download and extract the source ZIP (or clone the repository), open a terminal in the directory containing `pyproject.toml`, then:
+Run the installer:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e .
-python -m zettelkasten --collection ~/Zettelkasten-Test
+bash scripts/install-linux.sh
 ```
 
-The first run with a new empty collection creates a pinned **Start here** note and a linked tutorial. Once a collection is selected, launch it again with `python -m zettelkasten` (or `zettelkasten`). Use a disposable collection while learning. See [full installation instructions](docs/INSTALLATION.md).
+The script automatically:
 
+- Installs the required system dependencies.
+- Creates a dedicated Python virtual environment.
+- Installs My Zettelkasten from GitHub.
+- Creates a `my-zettelkasten` terminal command.
+- Adds My Zettelkasten to the Linux Mint application menu with its branded icon.
+
+Once installation finishes, search for **My Zettelkasten** in the Linux Mint application menu.
+
+Alternatively, launch it from a terminal:
+
+```bash
+~/.local/bin/my-zettelkasten
+```
+
+On first launch, create a new collection or open an existing one. My Zettelkasten remembers the last-used collection for subsequent launches.
+
+### Checking the installed version
+
+```bash
+~/.local/bin/my-zettelkasten --version
+```
+
+### Updating
+
+Run the installation script again to download and install the latest version from GitHub:
+
+```bash
+bash scripts/install-linux.sh
+```
+
+Your note collections are stored separately from the application and are not modified by the installation script.
+
+For manual installation, development setup, troubleshooting, and additional information, see the [full installation guide](docs/INSTALLATION.md).
 ## First five minutes
 
-1. Open the pinned **Start here** note and follow its links.
-2. Click **Idea** or press `Ctrl+Shift+I`; type your title after `# `.
-3. Type `[[` to search and insert a link to another note; `Ctrl+Shift+L` creates and opens a new linked Idea note.
-4. Use the left search field, Pinned and Recent to find notes; use **Links to** and **Linked from** to explore relationships.
-5. Optionally connect Zotero via **File → Choose bibliography**, then type `[@` to insert a citation.
+1. **Create or open a collection** using the welcome screen.
+2. Open the pinned **Start here** note and follow its links.
+3. Click **Idea** or press `Ctrl+Shift+I`; type your title after `# `.
+4. Type `[[` to search for and insert a link to another note. Use `Ctrl+Shift+L` to create a new linked Idea note.
+5. Use the sidebar search, Pinned and Recent notes, and **Links to / Linked from** to explore relationships between ideas.
 
-Read [Quick start](docs/QUICK_START.md) and [Keyboard shortcuts](docs/KEYBOARD_SHORTCUTS.md).
+You can switch collections at any time using the File menu. Previously opened collections are available under **File → Recent Collections**.
+
+Optionally, connect Zotero using **File → Choose bibliography**, then type `[@` to insert citations.
+
+Read the [Quick start](docs/QUICK_START.md) and [Keyboard shortcuts](docs/KEYBOARD_SHORTCUTS.md) for more information.
 
 ## Zotero + Better BibTeX
 
-Zotero manages references, PDFs, and PDF annotations. This application manages your Markdown Paper and Idea notes. The connection is a `.bib` file that Better BibTeX can **automatically re-export** when the Zotero library changes; the app reads that file and remembers its path for the collection. **It does not modify Zotero or synchronize Zotero notes.**
+Zotero manages references, PDFs, and PDF annotations. My Zettelkasten manages your Markdown Paper and Idea notes.
 
-To set up: install [Zotero](https://www.zotero.org/), install [Better BibTeX](https://retorque.re/zotero-better-bibtex/), right-click **My Library → Export Library**, choose **Better BibTeX**, enable **Keep updated**, and save to a stable location. In this app, use **File → Choose bibliography**. Verify with `[@` and the **References** window.
+The connection is a `.bib` file that Better BibTeX can **automatically re-export** whenever your Zotero library changes. My Zettelkasten reads that file and remembers its location for the collection.
 
-For exact steps, export verification, and troubleshooting, read **[Zotero and Better BibTeX setup](docs/ZOTERO_SETUP.md)**.
+**The application does not modify Zotero or synchronise Zotero notes.**
+
+To configure the integration:
+
+1. Install [Zotero](https://www.zotero.org/) and [Better BibTeX](https://retorque.re/zotero-better-bibtex/).
+2. In Zotero, right-click **My Library → Export Library**.
+3. Choose **Better BibTeX**, enable **Keep updated**, and save the export to a stable location.
+4. In My Zettelkasten, select **File → Choose bibliography**.
+5. Verify the connection using `[@` citation completion and the References window.
+
+For detailed instructions and troubleshooting, see [Zotero and Better BibTeX setup](docs/ZOTERO_SETUP.md).
 
 | Note linking (`[[`) | Zotero citation completion (`[@`) |
 |:--:|:--:|
@@ -91,20 +153,54 @@ For exact steps, export verification, and troubleshooting, read **[Zotero and Be
 
 ## Where are my notes?
 
-A **collection** is a directory containing `notes/` (Markdown), `attachments/` (copied files), `settings.json`, and recovery/trash folders. The optional bibliography may live inside or outside the collection. Your code and Python environment are separate from your collection. Keep backups of the entire collection, and back up Zotero separately. [Backup and recovery](docs/BACKUP_AND_RECOVERY.md).
+A **collection** is an ordinary directory containing your notes and associated files.
+
+Its structure includes:
+
+- `notes/` — Markdown note files.
+- `attachments/` — copied figures and documents.
+- `settings.json` — collection-specific settings.
+- Recovery and trash folders — support recovery and deletion workflows.
+
+The bibliography file may be stored inside or outside the collection.
+
+**Your notes are separate from the application code and Python environment.** Updating or reinstalling My Zettelkasten does not require moving your collections.
+
+Keep independent backups of the entire collection, and back up Zotero separately. See [Backup and recovery](docs/BACKUP_AND_RECOVERY.md).
 
 ## Status and limitations
 
-This is a **pilot**, not a data-loss guarantee. It has been tested on Linux Mint, but broad multi-user, cross-platform, and large-library testing is incomplete. It has no automatic Zotero-note synchronization, no rendered WYSIWYG editor, and no mobile app. Attached files are **copied** into the collection. The bibliography export is **read-only**. Please test with disposable notes first and report issues with reproduction steps.
+My Zettelkasten is an **experimental pilot**, not a data-loss guarantee.
+
+It has been tested on Linux Mint, but broad multi-user, cross-platform, and large-library testing is incomplete.
+
+Current limitations include:
+
+- No automatic Zotero-note synchronisation.
+- No rendered WYSIWYG Markdown editor.
+- No mobile application.
+- Attached files are copied into collections rather than linked to their original locations.
+- Bibliography integration is read-only.
+
+Please test with disposable notes before using the application for important work. Report reproducible problems through GitHub Issues.
 
 ## Future improvements
 
-We keep a curated [ROADMAP.md](ROADMAP.md) of possible improvements (ideas are **not promises**). Examples include clipboard image paste, linking existing files without copying, improved Zotero item links, and optional Markdown preview. Contributions and bug reports can be discussed in GitHub Issues once a repository is published.
+We maintain a curated [ROADMAP.md](ROADMAP.md) of possible improvements. These are ideas, not commitments.
+
+Potential improvements include clipboard image pasting, linking existing files without copying them, improved Zotero item links, optional Markdown preview, and further refinements to collection switching.
+
+Suggestions and bug reports are welcome through [GitHub Issues](https://github.com/MartinHeroux/personal-zettelkasten/issues).
 
 ## Documentation and development
 
+**User documentation**
+
 - [Installation](docs/INSTALLATION.md) · [Quick start](docs/QUICK_START.md) · [Zotero setup](docs/ZOTERO_SETUP.md)
 - [Keyboard shortcuts](docs/KEYBOARD_SHORTCUTS.md) · [Backups](docs/BACKUP_AND_RECOVERY.md)
+
+**Project documentation**
+
 - [Pilot checklist](docs/PILOT_CHECKLIST.md) · [Changelog](CHANGELOG.md) · [Roadmap](ROADMAP.md)
 
 Run the unit tests from the project root:
@@ -113,8 +209,16 @@ Run the unit tests from the project root:
 python -m unittest discover -s tests -v
 ```
 
-Tkinter GUI smoke tests can run on a Linux desktop or with `xvfb-run -a python tests/gui_smoke.py` (install `xvfb` if needed). Tests are useful but do not replace manual testing on your desktop.
+Tkinter GUI smoke tests can run on a Linux desktop or with:
+
+```bash
+xvfb-run -a python tests/gui_smoke.py
+```
+
+Install `xvfb` if necessary. Automated tests are useful but do not replace manual testing on a desktop.
 
 ## License
 
-[MIT](LICENSE). This project is independent of Zotero, Better BibTeX, and the author/publisher of *How to Take Smart Notes*.
+[MIT](LICENSE).
+
+This project is independent of Zotero, Better BibTeX, and the author and publisher of *How to Take Smart Notes*.

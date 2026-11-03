@@ -272,8 +272,29 @@ class EditorApp:
         menu.add_cascade(label='Navigate', menu=navmenu)
         helpmenu = tk.Menu(menu, tearoff=False)
         helpmenu.add_command(label='Keyboard shortcuts', command=self._show_shortcuts)
+        helpmenu.add_separator()
+        helpmenu.add_command(label='About My Zettelkasten...', command=self.show_about)
         menu.add_cascade(label='Help', menu=helpmenu)
         self.root.configure(menu=menu)
+
+    def show_about(self):
+        """Display application information and installed version."""
+        from importlib.metadata import version, PackageNotFoundError
+
+        try:
+            app_version = version("personal-zettelkasten")
+        except PackageNotFoundError:
+            app_version = "Unknown"
+
+        messagebox.showinfo(
+            "About My Zettelkasten",
+            f"My Zettelkasten\n"
+            f"Version {app_version}\n\n"
+            "Developed by Martin Heroux\n\n"
+            "A personal knowledge management application.\n\n"
+            "https://github.com/MartinHeroux/personal-zettelkasten",
+            parent=self.root
+        )
 
     def _show_shortcuts(self):
         messagebox.showinfo('Keyboard shortcuts',
@@ -1418,7 +1439,19 @@ def show_welcome(root):
 
 
 def main():
+    from importlib.metadata import version, PackageNotFoundError
+
+    try:
+        app_version = version("personal-zettelkasten")
+    except PackageNotFoundError:
+        app_version = "Unknown"
+
     parser = argparse.ArgumentParser(description='My Zettelkasten editor')
+    parser.add_argument(
+        '--version',
+        action='version',
+        version=f'My Zettelkasten {app_version}'
+    )
     parser.add_argument('--collection', type=Path, default=None, help='Collection folder')
     parser.add_argument('--open', type=Path, help='Markdown note to open at launch')
     parser.add_argument('--welcome', action='store_true', help='Show the collection chooser')
