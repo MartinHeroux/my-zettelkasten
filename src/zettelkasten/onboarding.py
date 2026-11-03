@@ -6,24 +6,71 @@ from uuid import uuid4
 PREFS_PATH = Path.home() / '.config' / 'personal-zettelkasten' / 'preferences.json'
 
 
-def get_default_collection(prefs_path=None):
+MAX_RECENT_COLLECTIONS = 10
+
+
+def _read_preferences(prefs_path=None):
     path = Path(prefs_path) if prefs_path else PREFS_PATH
     try:
-        data = json.loads(path.read_text(encoding='utf-8'))
-        saved = data.get('collection')
-        if isinstance(saved, str) and saved and Path(saved).expanduser().is_dir():
-            return Path(saved).expanduser()
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
     except (OSError, ValueError, TypeError):
-        pass
+        return {}
+
+
+def _write_preferences(data, prefs_path=None):
+    path = Path(prefs_path) if prefs_path else PREFS_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp = path.with_suffix(".tmp")
+    temp.write_text(
+        json.dumps(data, indent=2),
+        encoding="utf-8"
+    )
+    temp.replace(path)
+
+
+def get_default_collection(prefs_path=None):
+    data = _read_preferences(prefs_path)
+    saved = data.get("collection")
+    if isinstance(saved, str) and saved:
+        collection = Path(saved).expanduser()
+        if collection.is_dir():
+            return collection
     return None
 
 
+def get_recent_collections(prefs_path=None):
+    data = _read_preferences(prefs_path)
+    recent = data.get("recent_collections", [])
+    if not isinstance(recent, list):
+        return []
+
+    result = []
+    for item in recent:
+        if isinstance(item, str) and item and item not in result:
+            result.append(item)
+        if len(result) >= MAX_RECENT_COLLECTIONS:
+            break
+    return result
+
+
 def save_default_collection(collection, prefs_path=None):
-    path = Path(prefs_path) if prefs_path else PREFS_PATH
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temp = path.with_suffix('.tmp')
-    temp.write_text(json.dumps({'collection': str(Path(collection).expanduser().resolve())}, indent=2), encoding='utf-8')
-    temp.replace(path)
+    data = _read_preferences(prefs_path)
+    location = str(Path(collection).expanduser().resolve())
+
+    data["collection"] = location
+    recent = get_recent_collections(prefs_path)
+    data["recent_collections"] = (
+        [location] + [p for p in recent if p != location]
+    )[:MAX_RECENT_COLLECTIONS]
+
+    _write_preferences(data, prefs_path)
+
+
+def clear_recent_collections(prefs_path=None):
+    data = _read_preferences(prefs_path)
+    data["recent_collections"] = []
+    _write_preferences(data, prefs_path)
 
 
 def ensure_welcome(collection, notes_dir, inventory):
@@ -45,7 +92,15 @@ def ensure_welcome(collection, notes_dir, inventory):
         '4. Use the sidebar search, **Pinned**, and **Links to / Linked from** to find ideas again.\n'
         '5. Keep Zotero as the source of bibliographic records, PDFs and annotations; write your paper notes here.\n\n'
         f'## Tutorial\n\n[Reading to writing: worked example]({tutorial.name})\n\n'
-        '## Keeping your work safe\n\nYour notes are Markdown files in `notes/`. '
+        '## Managing collections\n\n'
+       'A collection is a folder containing your notes and associated files.\n\n'
+       '- **New Collection:** Use File → New Collection to choose a parent folder and name a new collection.\n'
+       '- **Open Collection:** Use File → Open Collection to select an existing collection, including one on Dropbox.\n'
+       '- **Recent Collections:** Use File → Recent Collections to reopen a previously used collection.\n'
+       '- **Close Collection:** Use File → Close Collection to return to the welcome screen without deleting any notes.\n\n'
+       'When you quit with a collection open, My Zettelkasten remembers it for next time. '
+       'If you close the collection first, the next launch shows the collection-selection screen instead.\n\n'
+       '## Keeping your work safe\n\nYour notes are Markdown files in `notes/`. '
         'Use independent backups of the entire collection; `recovery/` is not a substitute. '
         'Use Trash/Restore for accidental deletions.\n', encoding='utf-8')
     tutorial.write_text('---\ncategory: overview\n---\n\n# Reading to writing: worked example\n\n'
@@ -68,9 +123,9 @@ def ensure_welcome(collection, notes_dir, inventory):
 
 
 def clear_default_collection(prefs_path=None):
-    path = Path(prefs_path) if prefs_path else PREFS_PATH
-    if path.exists():
-        path.unlink()
+    data = _read_preferences(prefs_path)
+    data.pop("collection", None)
+    _write_preferences(data, prefs_path)
 
 
 def collection_is_valid(path):

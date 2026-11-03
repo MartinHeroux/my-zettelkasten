@@ -17,7 +17,7 @@ from tkinter import filedialog, font, messagebox, simpledialog, ttk
 from .highlighting import spans
 from .bibliography import BibError, read_bib, paper_matches, paper_template
 from .collection import archived_of, title_of, category_of, scan, template, link_for, trash_note
-from .onboarding import ensure_welcome, get_default_collection, save_default_collection, clear_default_collection, create_collection, collection_is_valid
+from .onboarding import ensure_welcome, get_default_collection, save_default_collection, clear_default_collection, create_collection, collection_is_valid, get_recent_collections, clear_recent_collections
 from .storage import ExternalChangeError, load_note, new_note_path, preserve_unsaved_copy, save_note
 
 
@@ -234,6 +234,11 @@ class EditorApp:
         filemenu = tk.Menu(menu, tearoff=False)
         filemenu.add_command(label='New Collection...', command=self.new_collection)
         filemenu.add_command(label='Open Collection...', command=self.open_collection)
+        recent_menu = tk.Menu(filemenu, tearoff=False)
+        filemenu.add_cascade(label='Recent Collections', menu=recent_menu)
+        recent_menu.configure(
+            postcommand=lambda: self._populate_recent_menu(recent_menu)
+        )
         filemenu.add_command(label='Close Collection', command=self.close_collection)
         filemenu.add_separator()
         for label, action, shortcut in (
@@ -1183,6 +1188,55 @@ class EditorApp:
             return
         self._switch_collection(destination)
 
+    def _populate_recent_menu(self, menu):
+        """Refresh recent collections whenever the menu opens."""
+        menu.delete(0, 'end')
+        recent = get_recent_collections()
+
+        if not recent:
+            menu.add_command(label='No recent collections', state='disabled')
+        else:
+            for location in recent:
+                collection = Path(location).expanduser()
+                label = f"{collection.name} — {collection}"
+
+                menu.add_command(
+                    label=label,
+                    command=lambda path=collection: self._open_recent_collection(path)
+                )
+
+        menu.add_separator()
+        menu.add_command(
+            label='Clear Recent Collections',
+            command=self._clear_recent_menu,
+            state='normal' if recent else 'disabled'
+        )
+
+    def _open_recent_collection(self, collection):
+        """Open a recent collection without creating missing folders."""
+        if not collection_is_valid(collection):
+            messagebox.showwarning(
+                'Collection unavailable',
+                f'Cannot open this collection:\n\n{collection}\n\n'
+                'The folder may have been moved, or Dropbox may be unavailable.',
+                parent=self.root
+            )
+            return
+
+        if collection.resolve() == self.collection:
+            return
+
+        self._switch_collection(collection)
+
+    def _clear_recent_menu(self):
+        if messagebox.askyesno(
+            'Clear Recent Collections',
+            'Remove the recent collection history?\n\n'
+            'Your notes and collection folders will not be deleted.',
+            parent=self.root
+        ):
+            clear_recent_collections()
+
     def open_collection(self):
         selected = filedialog.askdirectory(parent=self.root, title='Open existing collection', mustexist=True)
         if not selected:
@@ -1204,44 +1258,163 @@ class EditorApp:
 
 
 def show_welcome(root):
+    """Welcome screen with new, open and recent collections."""
     root.title('My Zettelkasten — Welcome')
-    root.geometry('650x350')
-    panel = ttk.Frame(root, padding=35)
+    root.geometry('760x520')
+    root.minsize(620, 420)
+
+    panel = ttk.Frame(root, padding=25)
     panel.pack(expand=True, fill='both')
-    ttk.Label(panel, text='Welcome to My Zettelkasten', font=('TkDefaultFont', 17, 'bold')).pack(pady=12)
-    ttk.Label(panel, text='Create a collection or open an existing one to get started.').pack(pady=8)
+
+    ttk.Label(
+        panel,
+        text='Welcome to My Zettelkasten',
+        font=('TkDefaultFont', 17, 'bold')
+    ).pack(pady=(5, 8))
+
+    ttk.Label(
+        panel,
+        text='Create a collection or open an existing one to get started.'
+    ).pack(pady=(0, 18))
 
     def launch(collection):
         if collection is None:
             return
+        if not collection_is_valid(collection):
+            messagebox.showwarning(
+                'Collection unavailable',
+                f'Cannot open this collection:\\n\\n{collection}\\n\\n'
+                'The folder may have been moved, or Dropbox may be unavailable.',
+                parent=root
+            )
+            return
         save_default_collection(collection)
+        try:
+            subprocess.Popen(
+                [sys.executable, '-m', 'zettelkasten',
+                 '--collection', str(collection)],
+                cwd=str(Path.home())
+            )
+        except OSError as error:
+            messagebox.showerror(
+                'Cannot open collection', str(error), parent=root
+            )
+            return
         root.destroy()
-        subprocess.Popen([sys.executable, '-m', 'zettelkasten', '--collection', str(collection)], cwd=str(Path.home()))
 
     def new():
-        parent = filedialog.askdirectory(parent=root, title='Choose parent folder for new collection', mustexist=True)
+        parent = filedialog.askdirectory(
+            parent=root,
+            title='Choose parent folder for new collection',
+            mustexist=True
+        )
         if not parent:
             return
-        name = simpledialog.askstring('New Collection', 'Collection folder name:', parent=root)
+        name = simpledialog.askstring(
+            'New Collection', 'Collection folder name:', parent=root
+        )
         if not name:
             return
         try:
-            launch(create_collection(Path(parent), name))
+            destination = create_collection(Path(parent), name)
         except (ValueError, OSError) as error:
-            messagebox.showerror('Cannot create collection', str(error), parent=root)
+            messagebox.showerror(
+                'Cannot create collection', str(error), parent=root
+            )
+            return
+        launch(destination)
 
     def open_existing():
-        selected = filedialog.askdirectory(parent=root, title='Open existing collection', mustexist=True)
+        selected = filedialog.askdirectory(
+            parent=root,
+            title='Open existing collection',
+            mustexist=True
+        )
         if not selected:
-            return
-        if not collection_is_valid(Path(selected)):
-            messagebox.showerror('Not a collection', 'Choose a folder containing a notes directory.', parent=root)
             return
         launch(Path(selected))
 
-    ttk.Button(panel, text='New Collection...', command=new).pack(pady=8)
-    ttk.Button(panel, text='Open Collection...', command=open_existing).pack(pady=8)
-    ttk.Label(panel, text='New collections include introductory Start Here notes.').pack(pady=12)
+    buttons = ttk.Frame(panel)
+    buttons.pack(pady=(0, 20))
+
+    ttk.Button(
+        buttons, text='New Collection...', command=new
+    ).pack(side='left', padx=8)
+
+    ttk.Button(
+        buttons, text='Open Collection...', command=open_existing
+    ).pack(side='left', padx=8)
+
+    ttk.Separator(panel, orient='horizontal').pack(
+        fill='x', pady=(0, 15)
+    )
+
+    recent_header = ttk.Frame(panel)
+    recent_header.pack(fill='x', pady=(0, 8))
+
+    ttk.Label(
+        recent_header,
+        text='Recent Collections',
+        font=('TkDefaultFont', 11, 'bold')
+    ).pack(side='left')
+
+    recent = get_recent_collections()
+
+    if recent:
+        list_frame = ttk.Frame(panel)
+        list_frame.pack(fill='both', expand=True)
+
+        collection_list = tk.Listbox(
+            list_frame,
+            height=10,
+            activestyle='dotbox',
+            exportselection=False
+        )
+        collection_list.pack(
+            side='left', fill='both', expand=True
+        )
+
+        scrollbar = ttk.Scrollbar(
+            list_frame,
+            orient='vertical',
+            command=collection_list.yview
+        )
+        scrollbar.pack(side='right', fill='y')
+        collection_list.configure(yscrollcommand=scrollbar.set)
+
+        for location in recent:
+            collection = Path(location).expanduser()
+            collection_list.insert(
+                'end', f'{collection.name}  —  {collection}'
+            )
+
+        def open_selected(event=None):
+            selection = collection_list.curselection()
+            if selection:
+                launch(Path(recent[selection[0]]))
+
+        collection_list.bind('<Double-Button-1>', open_selected)
+        collection_list.bind('<Return>', open_selected)
+
+        ttk.Button(
+            panel,
+            text='Open Selected Collection',
+            command=open_selected
+        ).pack(pady=(10, 0))
+
+    else:
+        ttk.Label(
+            panel,
+            text='No recent collections yet.',
+            foreground='gray'
+        ).pack(pady=25)
+
+    ttk.Label(
+        panel,
+        text='New collections include introductory Start Here notes.',
+        foreground='gray'
+    ).pack(pady=(15, 0))
+
 
 
 def main():

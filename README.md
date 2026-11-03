@@ -6,7 +6,7 @@
 
 A lightweight, local-first Markdown note editor for **connecting ideas, papers, and projects**. Built with Python and Tkinter, inspired by the Zettelkasten workflow discussed in Sönke Ahrens’s *How to Take Smart Notes*.
 
-**Version 0.5.2 — experimental Linux pilot.** Tested by the project author on Linux Mint; other platforms are not yet verified. Back up your notes independently before relying on the application for important work.
+**Version 0.5.3 — experimental Linux pilot.** Tested by the project author on Linux Mint; other platforms are not yet verified. Back up your notes independently before relying on the application for important work.
 
 ![My Zettelkasten main window showing notes, editor, and links](screenshots/main_app.png)
 
@@ -23,6 +23,25 @@ Write notes in ordinary `.md` files, follow relationships between ideas, and ret
 - Create or reopen Paper notes from bibliography entries; attach figures and PDFs as copied local files.
 - Autosave, recovery copies, recoverable deletion, project archiving, and external-edit conflict warnings.
 - An editable, pinned **Start here** tutorial for newly created empty collections.
+
+## What's New in v0.5.3 — Recent Collections and Welcome Screen
+
+My Zettelkasten v0.5.3 improves collection navigation and the first-run experience.
+
+### New features
+
+- **Recent Collections:** Access up to 10 previously opened collections from File → Recent Collections.
+- **Improved welcome screen:** Create a new collection, open an existing collection, or select a recently used collection.
+- **Automatic reopening:** The last-used collection opens automatically when restarting the application.
+- **Collection history:** Recently opened collections remain available after closing a collection.
+- **Dropbox support:** Collections stored in Dropbox or other external directories can be opened without command-line arguments.
+- **Missing collections:** Unavailable collection folders produce a warning without deleting their history.
+- **Clear Recent Collections:** Remove collection history without affecting notes or collection folders.
+- **Updated onboarding:** The Start Here note now explains how to manage collections.
+
+### Compatibility
+
+Existing collections remain compatible. No migration or changes to note files are required.
 
 ## Installation (Linux Mint / Ubuntu)
 
