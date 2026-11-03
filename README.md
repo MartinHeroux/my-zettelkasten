@@ -1,10 +1,14 @@
-# Personal Zettelkasten
+<p align="center">
+  <img src="assets/branding/logo-banner.svg"
+       alt="My Zettelkasten"
+       width="700">
+</p>
 
 A lightweight, local-first Markdown note editor for **connecting ideas, papers, and projects**. Built with Python and Tkinter, inspired by the Zettelkasten workflow discussed in Sönke Ahrens’s *How to Take Smart Notes*.
 
 **Version 0.5.1 — experimental Linux pilot.** Tested by the project author on Linux Mint; other platforms are not yet verified. Back up your notes independently before relying on the application for important work.
 
-![Personal Zettelkasten main window showing notes, editor, and links](screenshots/main_app.png)
+![My Zettelkasten main window showing notes, editor, and links](screenshots/main_app.png)
 
 ## Why this application?
 
