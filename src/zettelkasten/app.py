@@ -292,7 +292,7 @@ class EditorApp:
             f"Version {app_version}\n\n"
             "Developed by Martin Heroux\n\n"
             "A personal knowledge management application.\n\n"
-            "https://github.com/MartinHeroux/personal-zettelkasten",
+            "https://github.com/MartinHeroux/my-zettelkasten",
             parent=self.root
         )
 

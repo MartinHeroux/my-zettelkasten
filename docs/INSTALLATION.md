@@ -22,7 +22,7 @@ Open a terminal and run:
 sudo apt update
 sudo apt install git
 
-git clone https://github.com/MartinHeroux/personal-zettelkasten.git
+git clone https://github.com/MartinHeroux/my-zettelkasten.git
 cd personal-zettelkasten
 ```
 
@@ -35,8 +35,8 @@ bash scripts/install-linux.sh
 The installer:
 
 1. Installs Python, Tkinter, Git, and virtual-environment support.
-2. Downloads or updates the application source in `~/.local/share/personal-zettelkasten/source/`.
-3. Creates a dedicated Python virtual environment in `~/.local/share/personal-zettelkasten/.venv/`.
+2. Downloads or updates the application source in `~/.local/share/my-zettelkasten/source/`.
+3. Creates a dedicated Python virtual environment in `~/.local/share/my-zettelkasten/.venv/`.
 4. Installs the application and its Python dependencies.
 5. Creates the `~/.local/bin/my-zettelkasten` terminal launcher.
 6. Registers My Zettelkasten in the Linux Mint application menu using its application icon.
@@ -89,7 +89,7 @@ sudo apt install python3 python3-tk python3-venv git
 Clone the repository and enter the project directory:
 
 ```bash
-git clone https://github.com/MartinHeroux/personal-zettelkasten.git
+git clone https://github.com/MartinHeroux/my-zettelkasten.git
 cd personal-zettelkasten
 ```
 

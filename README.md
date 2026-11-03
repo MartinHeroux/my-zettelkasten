@@ -53,7 +53,7 @@ The application is deliberately modest: it does not aim to replace Zotero, a PDF
 
 This release adds an About dialog and a command-line version option, making it easier to identify which version of My Zettelkasten is installed.
 
-For previous improvements, including collection management and Recent Collections, see the [Changelog](CHANGELOG.md) or [GitHub Releases](https://github.com/MartinHeroux/personal-zettelkasten/releases).
+For previous improvements, including collection management and Recent Collections, see the [Changelog](CHANGELOG.md) or [GitHub Releases](https://github.com/MartinHeroux/my-zettelkasten/releases).
 
 ## Installation (Linux Mint / Ubuntu)
 
@@ -66,8 +66,8 @@ The included installation script sets up My Zettelkasten as a desktop applicatio
 Clone the repository:
 
 ```bash
-git clone https://github.com/MartinHeroux/personal-zettelkasten.git
-cd personal-zettelkasten
+git clone https://github.com/MartinHeroux/my-zettelkasten.git
+cd my-zettelkasten
 ```
 
 Run the installer:
@@ -190,7 +190,7 @@ We maintain a curated [ROADMAP.md](ROADMAP.md) of possible improvements. These a
 
 Potential improvements include clipboard image pasting, linking existing files without copying them, improved Zotero item links, optional Markdown preview, and further refinements to collection switching.
 
-Suggestions and bug reports are welcome through [GitHub Issues](https://github.com/MartinHeroux/personal-zettelkasten/issues).
+Suggestions and bug reports are welcome through [GitHub Issues](https://github.com/MartinHeroux/my-zettelkasten/issues).
 
 ## Documentation and development
 

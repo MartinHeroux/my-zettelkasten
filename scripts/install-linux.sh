@@ -12,7 +12,7 @@ mkdir -p "$APP_DIR" "$HOME/.local/bin" "$HOME/.local/share/applications"
 if [ -d "$APP_DIR/source/.git" ]; then
     git -C "$APP_DIR/source" pull --ff-only
 else
-    git clone https://github.com/MartinHeroux/personal-zettelkasten.git "$APP_DIR/source"
+    git clone https://github.com/MartinHeroux/my-zettelkasten.git "$APP_DIR/source"
 fi
 
 # 3. Create virtual environment and install app
