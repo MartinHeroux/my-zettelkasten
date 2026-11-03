@@ -17,7 +17,7 @@ from tkinter import filedialog, font, messagebox, simpledialog, ttk
 from .highlighting import spans
 from .bibliography import BibError, read_bib, paper_matches, paper_template
 from .collection import archived_of, title_of, category_of, scan, template, link_for, trash_note
-from .onboarding import ensure_welcome, get_default_collection, save_default_collection
+from .onboarding import ensure_welcome, get_default_collection, save_default_collection, clear_default_collection, create_collection, collection_is_valid
 from .storage import ExternalChangeError, load_note, new_note_path, preserve_unsaved_copy, save_note
 
 
@@ -107,7 +107,7 @@ class EditorApp:
         self._update_history_buttons()
 
     def _make_ui(self):
-        self.root.title("Personal Zettelkasten — Editor v0.5.1")
+        self.root.title(f"My Zettelkasten — {self.collection.name}")
         self.root.minsize(650, 450)
         bar = ttk.Frame(self.root, padding=8)
         bar.pack(fill="x")
@@ -171,7 +171,19 @@ class EditorApp:
         self._set_fonts()
         self.text.bind("<<Modified>>", self._modified)
         self.status_var = tk.StringVar()
-        ttk.Label(self.root, textvariable=self.status_var, anchor="w", padding=(12, 5)).pack(fill="x")
+        status_frame = ttk.Frame(self.root, padding=(12, 5))
+        status_frame.pack(fill="x")
+        ttk.Label(
+            status_frame,
+            text=f"{self.collection.name}  |  {self.collection}",
+            anchor="w"
+        ).pack(side="left")
+        ttk.Separator(
+            status_frame, orient="vertical"
+        ).pack(side="left", fill="y", padx=10)
+        ttk.Label(
+            status_frame, textvariable=self.status_var, anchor="w"
+        ).pack(side="left", fill="x", expand=True)
         self.text.focus_set()
 
     def _maximize_window(self):
@@ -220,6 +232,10 @@ class EditorApp:
     def _build_menus(self):
         menu = tk.Menu(self.root)
         filemenu = tk.Menu(menu, tearoff=False)
+        filemenu.add_command(label='New Collection...', command=self.new_collection)
+        filemenu.add_command(label='Open Collection...', command=self.open_collection)
+        filemenu.add_command(label='Close Collection', command=self.close_collection)
+        filemenu.add_separator()
         for label, action, shortcut in (
             ('New Idea', self.new, 'Ctrl+Shift+I'),
             ('New Paper', lambda: self.new_category('paper'), 'Ctrl+Shift+P'),
@@ -294,7 +310,7 @@ class EditorApp:
 
     def _set_status(self, message):
         self.status_var.set(message)
-        self.root.title(f"{'* ' if self.dirty else ''}Personal Zettelkasten — v0.5.1")
+        self.root.title(f"{'* ' if self.dirty else ''}My Zettelkasten — {self.collection.name}")
 
     def _content(self):
         return self.text.get("1.0", "end-1c")
@@ -1134,6 +1150,52 @@ class EditorApp:
         self.text.focus_set()
         self._update_sources()
 
+    def _switch_collection(self, collection=None):
+        if not self._guard_unsaved():
+            return False
+        self._cancel_jobs()
+        command = [sys.executable, '-m', 'zettelkasten']
+        if collection is None:
+            command.append('--welcome')
+        else:
+            command.extend(['--collection', str(collection)])
+        try:
+            subprocess.Popen(command, cwd=str(Path.home()))
+        except OSError as error:
+            messagebox.showerror('Cannot switch collection', str(error), parent=self.root)
+            return False
+        self.root.destroy()
+        return True
+
+    def new_collection(self):
+        if not self._guard_unsaved():
+            return
+        parent = filedialog.askdirectory(parent=self.root, title='Choose parent folder for new collection', mustexist=True)
+        if not parent:
+            return
+        name = simpledialog.askstring('New Collection', 'Collection folder name:', parent=self.root)
+        if not name:
+            return
+        try:
+            destination = create_collection(Path(parent), name)
+        except (OSError, ValueError) as error:
+            messagebox.showerror('Cannot create collection', str(error), parent=self.root)
+            return
+        self._switch_collection(destination)
+
+    def open_collection(self):
+        selected = filedialog.askdirectory(parent=self.root, title='Open existing collection', mustexist=True)
+        if not selected:
+            return
+        if not collection_is_valid(Path(selected)):
+            messagebox.showerror('Not a collection', 'Choose a folder containing a notes directory.', parent=self.root)
+            return
+        self._switch_collection(Path(selected))
+
+    def close_collection(self):
+        if self._switch_collection():
+            clear_default_collection()
+
     def close(self):
         if not self._guard_unsaved():
             return
@@ -1141,23 +1203,67 @@ class EditorApp:
         self.root.destroy()
 
 
+def show_welcome(root):
+    root.title('My Zettelkasten — Welcome')
+    root.geometry('650x350')
+    panel = ttk.Frame(root, padding=35)
+    panel.pack(expand=True, fill='both')
+    ttk.Label(panel, text='Welcome to My Zettelkasten', font=('TkDefaultFont', 17, 'bold')).pack(pady=12)
+    ttk.Label(panel, text='Create a collection or open an existing one to get started.').pack(pady=8)
+
+    def launch(collection):
+        if collection is None:
+            return
+        save_default_collection(collection)
+        root.destroy()
+        subprocess.Popen([sys.executable, '-m', 'zettelkasten', '--collection', str(collection)], cwd=str(Path.home()))
+
+    def new():
+        parent = filedialog.askdirectory(parent=root, title='Choose parent folder for new collection', mustexist=True)
+        if not parent:
+            return
+        name = simpledialog.askstring('New Collection', 'Collection folder name:', parent=root)
+        if not name:
+            return
+        try:
+            launch(create_collection(Path(parent), name))
+        except (ValueError, OSError) as error:
+            messagebox.showerror('Cannot create collection', str(error), parent=root)
+
+    def open_existing():
+        selected = filedialog.askdirectory(parent=root, title='Open existing collection', mustexist=True)
+        if not selected:
+            return
+        if not collection_is_valid(Path(selected)):
+            messagebox.showerror('Not a collection', 'Choose a folder containing a notes directory.', parent=root)
+            return
+        launch(Path(selected))
+
+    ttk.Button(panel, text='New Collection...', command=new).pack(pady=8)
+    ttk.Button(panel, text='Open Collection...', command=open_existing).pack(pady=8)
+    ttk.Label(panel, text='New collections include introductory Start Here notes.').pack(pady=12)
+
+
 def main():
-    parser = argparse.ArgumentParser(description="Personal Zettelkasten editor v0.5.1")
-    parser.add_argument("--collection", type=Path, default=None,
-                        help="Collection folder (defaults to ~/Zettelkasten-Prototype)")
-    parser.add_argument("--open", type=Path, help="Markdown note to open at launch")
+    parser = argparse.ArgumentParser(description='My Zettelkasten editor')
+    parser.add_argument('--collection', type=Path, default=None, help='Collection folder')
+    parser.add_argument('--open', type=Path, help='Markdown note to open at launch')
+    parser.add_argument('--welcome', action='store_true', help='Show the collection chooser')
     args = parser.parse_args()
     try:
         root = tk.Tk()
     except tk.TclError as error:
-        parser.exit(1, f"Cannot open Tk window: {error}\nCheck that a graphical desktop session is running.\n")
-    selected_collection = args.collection or get_default_collection()
-    app = EditorApp(root, selected_collection)
-    save_default_collection(selected_collection)
-    if args.open:
-        app._load(args.open)
+        parser.exit(1, f'Cannot open Tk window: {error}\n')
+    selected = None if args.welcome else (args.collection or get_default_collection())
+    if selected is not None and collection_is_valid(selected):
+        app = EditorApp(root, selected)
+        save_default_collection(selected)
+        if args.open:
+            app._load(args.open)
+    else:
+        show_welcome(root)
     root.mainloop()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

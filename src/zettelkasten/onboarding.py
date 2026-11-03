@@ -15,7 +15,7 @@ def get_default_collection(prefs_path=None):
             return Path(saved).expanduser()
     except (OSError, ValueError, TypeError):
         pass
-    return Path.home() / 'Zettelkasten-Prototype'
+    return None
 
 
 def save_default_collection(collection, prefs_path=None):
@@ -65,3 +65,28 @@ def ensure_welcome(collection, notes_dir, inventory):
         'it does not choose which connection to follow.\n', encoding='utf-8')
     marker.write_text('Created initial onboarding notes. Remove this marker only if you intentionally want first-run notes recreated in an empty collection.\n', encoding='utf-8')
     return welcome
+
+
+def clear_default_collection(prefs_path=None):
+    path = Path(prefs_path) if prefs_path else PREFS_PATH
+    if path.exists():
+        path.unlink()
+
+
+def collection_is_valid(path):
+    path = Path(path).expanduser()
+    return path.is_dir() and (path / 'notes').is_dir()
+
+
+def create_collection(parent, name):
+    parent = Path(parent).expanduser()
+    if not parent.is_dir():
+        raise ValueError('The parent folder does not exist.')
+    if not name or name.strip() != name or name in ('.', '..') or '/' in name or '\\' in name:
+        raise ValueError('Enter a valid single folder name.')
+    destination = parent / name
+    if destination.exists():
+        raise ValueError('A folder with this name already exists. Use Open Collection instead.')
+    destination.mkdir()
+    (destination / 'notes').mkdir()
+    return destination
