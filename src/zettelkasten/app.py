@@ -646,7 +646,7 @@ class EditorApp:
                                 key=lambda r: (not r.title.casefold().startswith(needle), r.title.casefold()))[:100]
             listbox.delete(0, 'end')
             for ref in matches:
-                listbox.insert('end', f'{ref.title[:85]} — {ref.year} — {ref.key}')
+                listbox.insert('end', ref.key)
             if matches: listbox.selection_set(0)
         def open_selected(event=None):
             selection = listbox.curselection()
