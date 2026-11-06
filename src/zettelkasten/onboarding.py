@@ -34,7 +34,7 @@ def get_default_collection(prefs_path=None):
     saved = data.get("collection")
     if isinstance(saved, str) and saved:
         collection = Path(saved).expanduser()
-        if collection.is_dir():
+        if collection_is_valid(collection):
             return collection
     return None
 
@@ -47,7 +47,7 @@ def get_recent_collections(prefs_path=None):
 
     result = []
     for item in recent:
-        if isinstance(item, str) and item and item not in result:
+        if isinstance(item, str) and item and collection_is_valid(item) and item not in result:
             result.append(item)
         if len(result) >= MAX_RECENT_COLLECTIONS:
             break
@@ -85,10 +85,15 @@ def ensure_welcome(collection, notes_dir, inventory):
     tutorial = notes_dir / ('n_' + uuid4().hex + '.md')
     welcome.write_text('---\ncategory: overview\n---\n\n# Start here\n\n'
         'Welcome to your personal Zettelkasten. This is an ordinary Markdown note: edit or unpin it whenever you like.\n\n'
+        '## Fleeting Inbox\n\n'
+        'Capture a thought with Ctrl+Shift+N or New Note → Fleeting Note. Open Inbox to revisit it. '
+        'Develop creates a separate Permanent note; the original stays in Inbox. '
+        'After processing, reopen the original and Discard it. Confirmation permanently deletes it '
+        'and its recovery copies, bypassing Trash; developed notes remain.\n\n'
         '## First steps\n\n'
-        '1. Click **Idea** (Ctrl+Shift+I) and give your note a descriptive title.\n'
+        '1. Choose **New Note → Permanent Note** (Ctrl+Shift+I) and give your note a descriptive title.\n'
         '2. Type `[[` to link an existing note, or use **Linked note** (Ctrl+Shift+L) to branch into a new idea.\n'
-        '3. Type `[@` to insert a citation after selecting your Better BibTeX export under File → Choose bibliography.\n'
+        '3. Type `[@` to search citation keys and insert only `[@key]` after selecting your Better BibTeX export under Navigate → Choose Bibliography.\n'
         '4. Use the sidebar search, **Pinned**, and **Links to / Linked from** to find ideas again.\n'
         '5. Keep Zotero as the source of bibliographic records, PDFs and annotations; write your paper notes here.\n\n'
         f'## Tutorial\n\n[Reading to writing: worked example]({tutorial.name})\n\n'
@@ -102,21 +107,21 @@ def ensure_welcome(collection, notes_dir, inventory):
        'If you close the collection first, the next launch shows the collection-selection screen instead.\n\n'
        '## Keeping your work safe\n\nYour notes are Markdown files in `notes/`. '
         'Use independent backups of the entire collection; `recovery/` is not a substitute. '
-        'Use Trash/Restore for accidental deletions.\n', encoding='utf-8')
+        'Use Note → Move to Trash / Restore from Trash for main notes. Fleeting Discard is permanent.\n', encoding='utf-8')
     tutorial.write_text('---\ncategory: overview\n---\n\n# Reading to writing: worked example\n\n'
         'This fictional example demonstrates a workflow, not a published scientific finding.\n\n'
-        '## 1. Paper note\n\nIn Zotero, read a paper and annotate its PDF. '
-        'In the app, choose **References**, select a citation and create its associated Paper note. '
+        '## 1. Literature note\n\nIn Zotero, read a paper and annotate its PDF. '
+        'In the app, choose **References**, select a citation and create its associated Literature note. '
         'Record findings, methods, page numbers, and your own questions separately.\n\n'
-        '## 2. Idea note\n\nA reusable insight might be: '
+        '## 2. Permanent note\n\nA reusable insight might be: '
         '“Normalising measurements changes how comparisons should be interpreted.” '
-        'Create an Idea note, explain the reasoning and limitations, cite the paper with `[@`, '
-        'and link the Paper note using `[[`.\n\n'
+        'Create an Permanent note, explain the reasoning and limitations, cite the paper with `[@`, '
+        'and link the Literature note using `[[`.\n\n'
         '## 3. Project note\n\nCreate a Project note for a manuscript or lecture. '
-        'Link relevant Idea notes rather than copying all their contents. '
+        'Link relevant Permanent notes rather than copying all their contents. '
         'Archive the Project note when finished; keep reusable ideas available.\n\n'
         '## 4. Return later\n\nSearch by concept, select a cited source, '
-        'or open a pinned Overview. Back/Forward retraces visited notes; '
+        'or open a pinned Entry-Point note. Back/Forward retraces visited notes; '
         'it does not choose which connection to follow.\n', encoding='utf-8')
     marker.write_text('Created initial onboarding notes. Remove this marker only if you intentionally want first-run notes recreated in an empty collection.\n', encoding='utf-8')
     return welcome

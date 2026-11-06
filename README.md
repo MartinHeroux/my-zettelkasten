@@ -24,7 +24,8 @@ The application is deliberately modest: it does not aim to replace Zotero, a PDF
 
 **Writing and connecting notes**
 - Markdown editor with **visible syntax** and live styling for headings, emphasis, links, code, and citations.
-- Idea, Paper, Overview, and Project notes with simple templates and stable note filenames.
+- Fleeting, Permanent, Literature, Project, and Entry-Point notes with stable note filenames.
+- **New Note ▾** groups note creation; **Inbox** holds fleeting thoughts, with **Develop** and **Discard** actions.
 - Fast `[[` note linking, backlinks, searchable inventory, pinned notes, and browser-style Back/Forward history.
 - An editable, pinned **Start here** tutorial for newly created collections.
 
@@ -38,14 +39,25 @@ The application is deliberately modest: it does not aim to replace Zotero, a PDF
 
 **References and attachments**
 - `[@` citation autocomplete using a **read-only** Better BibTeX export from Zotero.
-- Create or reopen Paper notes from bibliography entries.
+- Create or reopen Literature notes from bibliography entries.
 - Attach figures and PDFs as copied local files.
 
 **Safety and usability**
-- Autosave, recovery copies, recoverable deletion, project archiving, and external-edit conflict warnings.
+- Autosave, recovery copies, Trash/Restore for main notes, permanent Discard for fleeting notes, project archiving, and external-edit conflict warnings.
 - Helpful warnings when a collection is unavailable, without automatically recreating missing folders.
 - **Help → About My Zettelkasten** displays the installed application version.
 - `--version` command-line option for checking the installed version.
+
+## Current working changes
+
+- Create a fleeting note with **Ctrl+Shift+N** or **New Note ▾ → Fleeting Note**.
+- Open **Inbox**, select a thought, and use **Develop** to create a Permanent note. Edit the developed copy; the original remains in Inbox.
+- When finished processing the original, use **Discard**. After confirmation, its Markdown file and recovery copies are permanently deleted, bypassing Trash. Independent backups or sync history may still contain copies.
+- Main notes retain **Note → Move to Trash** and **Restore from Trash**. Discard does not delete the developed Permanent note.
+- Citation suggestions display only Better BibTeX keys and insert `[@key]`; search still matches authors, titles, years and keys.
+- Sidebar filters use Permanent, Literature, Project and Entry Point alongside All, Recent, Pinned, Unlinked, Archived and Uncategorised.
+
+The current interface calls Idea notes **Permanent**, Paper notes **Literature**, and Overview notes **Entry-Point**. Existing Markdown category values (`idea`, `paper`, `overview`) remain compatible. Older screenshots may show earlier labels.
 
 ## Latest release
 
@@ -115,19 +127,19 @@ For manual installation, development setup, troubleshooting, and additional info
 
 1. **Create or open a collection** using the welcome screen.
 2. Open the pinned **Start here** note and follow its links.
-3. Click **Idea** or press `Ctrl+Shift+I`; type your title after `# `.
-4. Type `[[` to search for and insert a link to another note. Use `Ctrl+Shift+L` to create a new linked Idea note.
+3. Choose **New Note ▾ → Permanent Note** or press `Ctrl+Shift+I`; type your title after `# `.
+4. Type `[[` to search for and insert a link to another note. Use `Ctrl+Shift+L` to create a new linked Permanent note.
 5. Use the sidebar search, Pinned and Recent notes, and **Links to / Linked from** to explore relationships between ideas.
 
 You can switch collections at any time using the File menu. Previously opened collections are available under **File → Recent Collections**.
 
-Optionally, connect Zotero using **File → Choose bibliography**, then type `[@` to insert citations.
+Optionally, connect Zotero using **Navigate → Choose Bibliography**, then type `[@` to insert citations.
 
 Read the [Quick start](docs/QUICK_START.md) and [Keyboard shortcuts](docs/KEYBOARD_SHORTCUTS.md) for more information.
 
 ## Zotero + Better BibTeX
 
-Zotero manages references, PDFs, and PDF annotations. My Zettelkasten manages your Markdown Paper and Idea notes.
+Zotero manages references, PDFs, and PDF annotations. My Zettelkasten manages your Markdown Paper and Permanent notes.
 
 The connection is a `.bib` file that Better BibTeX can **automatically re-export** whenever your Zotero library changes. My Zettelkasten reads that file and remembers its location for the collection.
 
@@ -138,7 +150,7 @@ To configure the integration:
 1. Install [Zotero](https://www.zotero.org/) and [Better BibTeX](https://retorque.re/zotero-better-bibtex/).
 2. In Zotero, right-click **My Library → Export Library**.
 3. Choose **Better BibTeX**, enable **Keep updated**, and save the export to a stable location.
-4. In My Zettelkasten, select **File → Choose bibliography**.
+4. In My Zettelkasten, select **Navigate → Choose Bibliography**.
 5. Verify the connection using `[@` citation completion and the References window.
 
 For detailed instructions and troubleshooting, see [Zotero and Better BibTeX setup](docs/ZOTERO_SETUP.md).
@@ -149,7 +161,7 @@ For detailed instructions and troubleshooting, see [Zotero and Better BibTeX set
 
 **Paper-note template** — headings are prefilled so you can start with the title:
 
-![Paper note with headings](screenshots/paper_note_auto_headings.png)
+![Literature note with headings](screenshots/paper_note_auto_headings.png)
 
 ## Where are my notes?
 
@@ -157,7 +169,8 @@ A **collection** is an ordinary directory containing your notes and associated f
 
 Its structure includes:
 
-- `notes/` — Markdown note files.
+- `notes/` — Permanent, Literature, Project and Entry-Point Markdown files.
+- `inbox/` — fleeting Markdown notes awaiting processing.
 - `attachments/` — copied figures and documents.
 - `settings.json` — collection-specific settings.
 - Recovery and trash folders — support recovery and deletion workflows.

@@ -47,6 +47,8 @@ class EditorApp:
         self.root = root
         self.collection = collection.expanduser().resolve()
         self.notes_dir = self.collection / "notes"
+        self.inbox_dir = self.collection / "inbox"
+        self.inbox_dir.mkdir(parents=True, exist_ok=True)
         self.recovery_dir = self.collection / "recovery"
         self.attachments_dir = self.collection / "attachments"
         self.settings_path = self.collection / "settings.json"
@@ -113,13 +115,37 @@ class EditorApp:
         bar.pack(fill="x")
         self.toolbar_buttons = {}
         self._build_menus()
-        for i, (label, command) in enumerate((("Idea", self.new), ("Paper", lambda: self.new_category("paper")), ("Overview", lambda: self.new_category("overview")), ("Project", lambda: self.new_category("project")), ("Linked note", self.new_linked), ("Open", self.open_dialog), ("Save", self.save), ("Attach", self.attach), ("Back", self.go_back), ("Forward", self.go_forward), ("Pin", self.toggle_pin), ("References", self.choose_reference), ("Trash", self.delete_note), ("Restore", self.restore_note), ("Archive", self.toggle_archive), ("Refresh", self.refresh_inventory), ("Find", self.find))):
-            if i == 7:
-                bar = ttk.Frame(self.root, padding=(8, 0, 8, 3))
-                bar.pack(fill="x")
+        # Note types belong in one creation menu; Linked Note is an action,
+        # not a note category. Keep Back/Forward as individually addressable buttons.
+        new_button = ttk.Menubutton(bar, text="New Note ▾")
+        new_menu = tk.Menu(new_button, tearoff=False)
+        for label, command in (
+            ("Fleeting Note", self.new_fleeting),
+            ("Literature Note", lambda: self.new_category("paper")),
+            ("Permanent Note", self.new),
+            ("Project Note", lambda: self.new_category("project")),
+            ("Entry-Point Note", lambda: self.new_category("overview")),
+        ):
+            new_menu.add_command(label=label, command=command)
+        new_button.configure(menu=new_menu)
+        new_button.pack(side="left", padx=(0, 10))
+        for label, command in (
+            ("Linked Note", self.new_linked),
+            ("Inbox", self.show_inbox),
+            ("Save", self.save),
+            ("Back", self.go_back),
+            ("Forward", self.go_forward),
+            ("References", self.choose_reference),
+            ("Find", self.find),
+        ):
             button = ttk.Button(bar, text=label, command=command)
             button.pack(side="left", padx=(0, 6))
             self.toolbar_buttons[label] = button
+        self.fleeting_actions = []
+        for label, action in (("Develop", self.develop_fleeting), ("Discard", self.discard_fleeting)):
+            button = ttk.Button(bar, text=label, command=action, state='disabled')
+            button.pack(side='left', padx=(0, 5))
+            self.fleeting_actions.append(button)
         self.path_label = ttk.Label(bar, text="No note open")
         self.path_label.pack(side="left", padx=12)
         body = ttk.PanedWindow(self.root, orient="horizontal")
@@ -136,8 +162,11 @@ class EditorApp:
         self.sidebar_search = ttk.Entry(left, textvariable=self.query_var)
         self.sidebar_search.pack(fill="x", pady=4)
         self.filter_var = tk.StringVar(value="All")
-        filters = ("All", "Recent", "Pinned", "Unlinked", "Archived", "idea", "paper", "overview", "project", "inbox", "uncategorised")
-        ttk.Combobox(left, textvariable=self.filter_var, values=filters, state="readonly").pack(fill="x", pady=4)
+        # Read-only section headings and separators in a dropdown, not fake filters.
+        self.filter_choices = ("All", "Recent", "Pinned", "────────────", "Permanent", "Literature", "Project", "Entry Point", "─────────────", "Unlinked", "Archived", "Uncategorised")
+        self.filter_combo = ttk.Combobox(left, textvariable=self.filter_var, values=self.filter_choices, state="readonly")
+        self.filter_combo.pack(fill="x", pady=4)
+        self.filter_combo.bind('<<ComboboxSelected>>', self._filter_selected)
         self.filter_var.trace_add("write", lambda *_: self._populate_list())
         self.results_var = tk.StringVar(value="0 notes")
         ttk.Label(left, textvariable=self.results_var).pack(anchor="w")
@@ -207,6 +236,7 @@ class EditorApp:
 
     def _install_shortcuts(self):
         shortcuts = {
+            '<Control-Shift-N>': self.new_fleeting,
             '<Control-Shift-I>': self.new,
             '<Control-Shift-P>': lambda: self.new_category('paper'),
             '<Control-Shift-O>': lambda: self.new_category('overview'),
@@ -222,12 +252,18 @@ class EditorApp:
         for sequence, action in shortcuts.items():
             self.root.bind(sequence, lambda event, fn=action: self._run_shortcut(fn))
         # Some Tk/Linux keyboard layouts report uppercase shortcuts differently.
-        for letter, action in [('i',self.new),('p',lambda: self.new_category('paper')),
+        for letter, action in [('n',self.new_fleeting),('i',self.new),('p',lambda: self.new_category('paper')),
                                ('o',lambda: self.new_category('overview')),
                                ('j',lambda: self.new_category('project')),
                                ('l',self.new_linked),('a',self.attach),
                                ('f',self._focus_sidebar_search),('k',self.toggle_pin),('r',self.choose_reference)]:
             self.root.bind(f'<Control-Shift-{letter}>', lambda event, fn=action: self._run_shortcut(fn))
+
+    def _filter_selected(self, event=None):
+        if self.filter_var.get().startswith('─'):
+            self.filter_var.set(getattr(self, '_last_filter', 'All'))
+        else:
+            self._last_filter = self.filter_var.get()
 
     def _build_menus(self):
         menu = tk.Menu(self.root)
@@ -241,32 +277,44 @@ class EditorApp:
         )
         filemenu.add_command(label='Close Collection', command=self.close_collection)
         filemenu.add_separator()
-        for label, action, shortcut in (
-            ('New Idea', self.new, 'Ctrl+Shift+I'),
-            ('New Paper', lambda: self.new_category('paper'), 'Ctrl+Shift+P'),
-            ('New Overview', lambda: self.new_category('overview'), 'Ctrl+Shift+O'),
-            ('New Project', lambda: self.new_category('project'), 'Ctrl+Shift+J'),
-            ('New linked note', self.new_linked, 'Ctrl+Shift+L'),
-            ('Find reference / Paper note', self.choose_reference, 'Ctrl+Shift+R'),
-            ('Choose bibliography', self.choose_bibliography, ''),
-            ('Reload bibliography', lambda: self.refresh_bibliography(force=True), ''),
-            ('Open Markdown file', self.open_dialog, 'Ctrl+O'),
-            ('Save', self.save, 'Ctrl+S'),
-            ('Attach file', self.attach, 'Ctrl+Shift+A'),
-        ):
-            filemenu.add_command(label=label, command=action, accelerator=shortcut)
+        filemenu.add_command(label='Open Markdown file', command=self.open_dialog, accelerator='Ctrl+O')
+        filemenu.add_command(label='Save', command=self.save, accelerator='Ctrl+S')
         filemenu.add_separator()
         filemenu.add_command(label='Exit', command=self.close)
         menu.add_cascade(label='File', menu=filemenu)
+
+        notemenu = tk.Menu(menu, tearoff=False)
+        for label, action, shortcut in (
+            ('New Fleeting Note', self.new_fleeting, 'Ctrl+Shift+N'),
+            ('New Permanent Note', self.new, 'Ctrl+Shift+I'),
+            ('New Literature Note', lambda: self.new_category('paper'), 'Ctrl+Shift+P'),
+            ('New Project Note', lambda: self.new_category('project'), 'Ctrl+Shift+J'),
+            ('New Entry-Point Note', lambda: self.new_category('overview'), 'Ctrl+Shift+O'),
+            ('New Linked Note', self.new_linked, 'Ctrl+Shift+L'),
+        ):
+            notemenu.add_command(label=label, command=action, accelerator=shortcut)
+        notemenu.add_separator()
+        for label, action, shortcut in (
+            ('Pin / Unpin', self.toggle_pin, 'Ctrl+Shift+K'),
+            ('Attach File', self.attach, 'Ctrl+Shift+A'),
+            ('Archive / Unarchive', self.toggle_archive, ''),
+            ('Move to Trash', self.delete_note, ''),
+            ('Restore from Trash', self.restore_note, ''),
+        ):
+            notemenu.add_command(label=label, command=action, accelerator=shortcut)
+        menu.add_cascade(label='Note', menu=notemenu)
+
         navmenu = tk.Menu(menu, tearoff=False)
         for label, action, shortcut in (
-            ('Search notes', self._focus_sidebar_search, 'Ctrl+Shift+F'),
-            ('Find in current note', self.find, 'Ctrl+F'),
             ('Back', self.go_back, 'Alt+Left'),
             ('Forward', self.go_forward, 'Alt+Right'),
-            ('Pin / Unpin', self.toggle_pin, 'Ctrl+Shift+K'),
-            ('Restore from trash', self.restore_note, ''),
-            ('Archive / Unarchive project', self.toggle_archive, ''),
+            ('Search Notes', self._focus_sidebar_search, 'Ctrl+Shift+F'),
+            ('Find in Current Note', self.find, 'Ctrl+F'),
+            ('Fleeting Inbox', self.show_inbox, ''),
+            ('Find Reference / Paper Note', self.choose_reference, 'Ctrl+Shift+R'),
+            ('Choose Bibliography', self.choose_bibliography, ''),
+            ('Reload Bibliography', lambda: self.refresh_bibliography(force=True), ''),
+            ('Refresh Notes', self.refresh_inventory, ''),
         ):
             navmenu.add_command(label=label, command=action, accelerator=shortcut)
         menu.add_cascade(label='Navigate', menu=navmenu)
@@ -298,8 +346,8 @@ class EditorApp:
 
     def _show_shortcuts(self):
         messagebox.showinfo('Keyboard shortcuts',
-            'New Idea: Ctrl+Shift+I\nNew Paper: Ctrl+Shift+P\n'
-            'New Overview: Ctrl+Shift+O\nNew Project: Ctrl+Shift+J\n'
+            'New Fleeting: Ctrl+Shift+N\nNew Permanent: Ctrl+Shift+I\nNew Literature: Ctrl+Shift+P\n'
+            'New Entry-Point: Ctrl+Shift+O\nNew Project: Ctrl+Shift+J\n'
             'New linked note: Ctrl+Shift+L\nAttach: Ctrl+Shift+A\n'
             'Save: Ctrl+S\nOpen: Ctrl+O\nSearch notes: Ctrl+Shift+F\n'
             'Find in note: Ctrl+F\nBack / Forward: Alt+Left / Alt+Right\n'
@@ -408,6 +456,10 @@ class EditorApp:
         self.path_label.configure(text=path.name)
         self._apply_highlighting()
         self._set_status(f"Opened {path}")
+        if hasattr(self, 'fleeting_actions'):
+            is_fleeting = path.parent == self.inbox_dir.resolve()
+            for button in self.fleeting_actions:
+                button.configure(state='normal' if is_fleeting else 'disabled')
         self.refresh_inventory()
         self.text.focus_set()
         return True
@@ -489,6 +541,8 @@ class EditorApp:
         self.path_label.configure(text=self.path.name)
         self._apply_highlighting()
         self._set_status("New note — save or wait for autosave")
+        for button in self.fleeting_actions:
+            button.configure(state='disabled')
         if previous:
             self.history.append(previous)
         self.future.clear()
@@ -533,6 +587,7 @@ class EditorApp:
         self.expected_hash = digest
         self.dirty = False
         self.conflicted = False
+        self._refresh_inbox_count()
         self._set_status(f"Saved {self.path.name}{' (autosave)' if automatic else ''}")
         self.refresh_inventory()
         return True
@@ -594,6 +649,7 @@ class EditorApp:
     def refresh_inventory(self):
         self.inventory = scan(self.notes_dir)
         self._populate_list()
+        self._refresh_inbox_count()
         self._update_relations()
         self._update_sources()
 
@@ -734,7 +790,10 @@ class EditorApp:
             linked = set().union(*(n['targets'] for n in notes)) if notes else set()
             notes = [n for n in notes if n['path'] not in linked and not (n['targets'] - {n['path']})]
         elif mode != 'All':
-            notes = [n for n in notes if n['category'] == mode]
+            category = {'Permanent': 'idea', 'Literature': 'paper',
+                        'Entry Point': 'overview', 'Project': 'project',
+                        'Uncategorised': 'uncategorised'}.get(mode, mode)
+            notes = [n for n in notes if n['category'] == category]
         if query:
             notes = [n for n in notes if query in n['title'].casefold() or query in n['content'].casefold()]
         # Pinned first in All; all remaining notes most recently modified first.
@@ -802,7 +861,7 @@ class EditorApp:
 
     def open_note(self, target: Path, record=True):
         target = Path(target).resolve()
-        if not target.is_file() or target.parent != self.notes_dir.resolve():
+        if not target.is_file() or target.parent not in (self.notes_dir.resolve(), self.inbox_dir.resolve()):
             messagebox.showwarning('Missing note', f'Cannot open note: {target}')
             return False
         if target == self.path:
@@ -873,14 +932,14 @@ class EditorApp:
     def new_without_guard(self, category):
         previous = self._current_location()
         self._cancel_jobs()
-        self.path = new_note_path(self.notes_dir)
+        self.path = new_note_path(self.inbox_dir if category == 'fleeting' else self.notes_dir)
         self.expected_hash = None
         self.dirty = True
         self.conflicted = False
         self._loading = True
         try:
             self.text.delete('1.0', 'end')
-            self.text.insert('1.0', template(category))
+            self.text.insert('1.0', '# Fleeting thought\n\n' if category == 'fleeting' else template(category))
             self.text.edit_reset()
             self.text.edit_modified(False)
         finally:
@@ -888,6 +947,8 @@ class EditorApp:
         self.path_label.configure(text=self.path.name)
         self._apply_highlighting()
         self._set_status('New ' + category + ' note')
+        for button in self.fleeting_actions:
+            button.configure(state='normal' if category == 'fleeting' else 'disabled')
         if previous:
             self.history.append(previous)
         self.future.clear()
@@ -896,10 +957,96 @@ class EditorApp:
         self.refresh_inventory()
         self._focus_title()
 
+    def new_fleeting(self):
+        self.new_category('fleeting')
+
+    def _inbox_paths(self):
+        return sorted(self.inbox_dir.glob('*.md'), key=lambda p: p.stat().st_mtime, reverse=True)
+
+    def _refresh_inbox_count(self):
+        if hasattr(self, 'toolbar_buttons') and 'Inbox' in self.toolbar_buttons:
+            self.toolbar_buttons['Inbox'].configure(text=f'Inbox ({len(self._inbox_paths())})')
+
+    def show_inbox(self):
+        if not self._guard_unsaved():
+            return
+        dialog = tk.Toplevel(self.root)
+        dialog.title('Fleeting Inbox')
+        dialog.geometry('540x390')
+        dialog.transient(self.root)
+        ttk.Label(dialog, text='Unprocessed fleeting notes').pack(anchor='w', padx=12, pady=8)
+        listing = tk.Listbox(dialog, exportselection=False)
+        listing.pack(fill='both', expand=True, padx=12, pady=4)
+        paths = self._inbox_paths()
+        for path in paths:
+            try:
+                content = path.read_text(encoding='utf-8-sig')
+                title = title_of(content) if False else next((line[2:].strip() for line in content.splitlines() if line.startswith('# ')), path.stem)
+            except OSError:
+                title = path.stem
+            listing.insert('end', title + '  —  ' + path.stem[:12])
+        def open_selected(event=None):
+            selected = listing.curselection()
+            if not selected:
+                return
+            target = paths[selected[0]]
+            dialog.destroy()
+            self.open_note(target)
+        ttk.Button(dialog, text='Open selected', command=open_selected).pack(pady=8)
+        listing.bind('<Double-Button-1>', open_selected)
+
+    def develop_fleeting(self):
+        if not self.path or self.path.parent.resolve() != self.inbox_dir.resolve():
+            return
+        if not self._guard_unsaved():
+            return
+        source = self.path
+        try:
+            content = source.read_text(encoding='utf-8-sig')
+        except OSError as error:
+            messagebox.showerror('Cannot develop note', str(error))
+            return
+        # Create the destination before offering to remove the source.
+        target = new_note_path(self.notes_dir)
+        developed = template('idea') + '\n## From fleeting note\n\n' + content + '\n'
+        try:
+            save_note(target, developed, None, self.recovery_dir)
+        except OSError as error:
+            messagebox.showerror('Cannot develop note', str(error))
+            return
+        if self._load(target):
+            self._set_status('Permanent note created. Edit and save it; the fleeting source remains in Inbox.')
+            messagebox.showinfo('Permanent note created', 'A new permanent note has been created from the fleeting note. The original remains in Inbox until you explicitly discard it.')
+
+    def discard_fleeting(self):
+        if not self.path or self.path.parent.resolve() != self.inbox_dir.resolve():
+            return
+        if not messagebox.askyesno(
+            'Permanently discard fleeting note',
+            f'Permanently delete {self.path.name} and its recovery copies?\n\n'
+            'This cannot be undone with Restore from Trash.', parent=self.root
+        ):
+            return
+        discarded = self.path
+        try:
+            # Remove saved versions first; retain the source if cleanup fails.
+            for recovery in self.recovery_dir.glob(f'{discarded.stem}.*.md'):
+                recovery.unlink()
+            discarded.unlink(missing_ok=True)
+        except OSError as error:
+            messagebox.showerror('Discard failed', str(error), parent=self.root)
+            return
+        self._clear_removed_note(discarded)
+        self._refresh_inbox_count()
+        self._set_status('Fleeting note permanently deleted')
+
     def new_linked(self):
         """Branch to a new idea; persist the source link before navigating."""
         if not self.path:
             self.new_category('idea')
+            return
+        if self.path.parent.resolve() == self.inbox_dir.resolve():
+            messagebox.showinfo('Fleeting note', 'Develop this note before creating linked permanent notes.')
             return
         oldpath = self.path
         original_cursor = self.text.index('insert')
@@ -956,6 +1103,12 @@ class EditorApp:
         except OSError as error:
             messagebox.showerror('Trash failed', str(error))
             return
+        self._clear_removed_note(moved)
+        self._set_status(f'Moved to {moved}')
+
+    def _clear_removed_note(self, removed):
+        # Pending autosave must not recreate a discarded note.
+        self._cancel_jobs()
         self.path = None
         self.expected_hash = None
         self._loading = True
@@ -965,9 +1118,10 @@ class EditorApp:
         self.dirty = False
         self.path_label.configure(text='No note open')
         self.refresh_inventory()
-        self._set_status(f'Moved to {moved}')
-        self.history = [entry for entry in self.history if entry[0] != moved and entry[0].name != moved.name]
-        self.future = [entry for entry in self.future if entry[0] != moved and entry[0].name != moved.name]
+        for button in self.fleeting_actions:
+            button.configure(state='disabled')
+        self.history = [entry for entry in self.history if entry[0] != removed and entry[0].name != removed.name]
+        self.future = [entry for entry in self.future if entry[0] != removed and entry[0].name != removed.name]
         self._update_history_buttons()
 
     def restore_note(self):
@@ -1140,7 +1294,7 @@ class EditorApp:
         self.popup_list = tk.Listbox(self.popup, height=min(8, len(matches)), width=85, exportselection=False)
         self.popup_list.pack()
         for n in matches:
-            label = (n['title'] + ' [' + n['category'] + ']') if kind == 'note' else (n.key + ' — ' + n.display())
+            label = (n['title'] + ' [' + n['category'] + ']') if kind == 'note' else n.key
             self.popup_list.insert('end', label[:135])
         self.popup_list.selection_set(0)
         self.popup_list.bind('<Double-Button-1>', lambda e: self._choose_completion())

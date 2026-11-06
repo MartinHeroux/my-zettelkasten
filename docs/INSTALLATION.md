@@ -268,6 +268,7 @@ A typical collection includes:
 ```text
 My-Zettelkasten/
 ├── notes/
+├── inbox/
 ├── attachments/
 ├── recovery/
 ├── trash/

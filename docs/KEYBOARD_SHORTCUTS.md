@@ -2,11 +2,12 @@
 
 | Action | Shortcut |
 |---|---|
-| New Idea | `Ctrl+Shift+I` |
-| New Paper | `Ctrl+Shift+P` |
-| New Overview | `Ctrl+Shift+O` |
+| New Fleeting | `Ctrl+Shift+N` |
+| New Permanent | `Ctrl+Shift+I` |
+| New Literature | `Ctrl+Shift+P` |
+| New Entry-Point | `Ctrl+Shift+O` |
 | New Project | `Ctrl+Shift+J` |
-| New linked Idea note | `Ctrl+Shift+L` |
+| New linked Permanent note | `Ctrl+Shift+L` |
 | Attach file | `Ctrl+Shift+A` |
 | Save | `Ctrl+S` |
 | Open note | `Ctrl+O` |

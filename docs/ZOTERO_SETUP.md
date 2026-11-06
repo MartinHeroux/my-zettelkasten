@@ -21,10 +21,10 @@ This is Better BibTeX's **automatic export**, not the application's Markdown aut
 ## 3. Point Personal Zettelkasten to the export
 
 1. Open the application and your intended collection.
-2. Select **File → Choose bibliography** and choose the exported `.bib` file.
+2. Select **Navigate → Choose Bibliography** and choose the exported `.bib` file.
 3. Open **References** (or press `Ctrl+Shift+R`) and check that papers appear.
-4. In a note, type `[@` and part of an author name, title, year or citation key. Select a suggestion with arrows and Enter.
-5. Use References to create a Paper note associated with the exact exported citation key; selecting the same reference later should reopen the existing Paper note.
+4. In a note, type `[@` and part of an author name, title, year or citation key. Suggestions show citation keys only; search still matches authors, titles, years and keys. Select with arrows and Enter to insert `[@key]` without reference text.
+5. Use References to create a Literature note associated with the exact exported citation key; selecting the same reference later should reopen the existing Literature note.
 
 The chosen bibliography path is saved in the **collection settings**, so it should persist across application sessions. Different collections can point to different exports. The app reloads the bibliography when reference features are accessed and a change is detected; it does not continuously watch the file in the background.
 
@@ -47,6 +47,6 @@ The text between `@article{` and the first comma in BibTeX is a **citation key**
 - **Only two references appear:** the bundled sample bibliography is selected; choose your own `.bib` export.
 - **New Zotero item not visible:** verify Better BibTeX's **Keep updated** export is configured, the export file itself changed, and the app points to that exact file.
 - **Citation key changes:** the old Markdown citation may no longer resolve; reconcile it explicitly instead of assuming a new key.
-- **Moved file:** use **File → Choose bibliography** again. Your Markdown notes remain editable without Zotero running.
+- **Moved file:** use **Navigate → Choose Bibliography** again. Your Markdown notes remain editable without Zotero running.
 
 More information: [Zotero documentation](https://www.zotero.org/support/) and [Better BibTeX documentation](https://retorque.re/zotero-better-bibtex/).

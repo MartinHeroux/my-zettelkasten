@@ -4,7 +4,7 @@ Use a **throwaway** collection and test each item before trusting real research 
 
 - [ ] Empty collection opens a pinned Start here note and linked tutorial.
 - [ ] Relaunch does not duplicate welcome notes; existing collections are untouched.
-- [ ] Create Idea, Paper, Overview, Project; cursor starts at title.
+- [ ] Create Fleeting, Permanent, Literature, Entry-Point and Project notes; cursor starts at title.
 - [ ] Linked note saves source link, opens new note; Back returns to original position.
 - [ ] Link completion and citation completion work entirely by keyboard.
 - [ ] Two pinned notes remain pinned and one-click selection works.
@@ -20,3 +20,15 @@ Use a **throwaway** collection and test each item before trusting real research 
 - [ ] Create an independent backup, then verify you can restore it.
 
 Report any failures with the terminal traceback and the steps to reproduce.
+
+## Inbox and current-interface checks
+
+- [ ] Create fleeting notes using both New Note and Ctrl+Shift+N; verify Inbox count and title focus.
+- [ ] Develop a fleeting note; verify separate Permanent file, source retained, and editable content.
+- [ ] Cancel Discard; verify the source and recovery copies remain.
+- [ ] Confirm Discard; verify source/recovery copies are gone, no Trash entry was created, developed note remains, and waiting past autosave does not recreate the source.
+- [ ] Discard a newly created fleeting note before its first autosave.
+- [ ] Simulate deletion failure; verify an error is shown and the open note remains available.
+- [ ] Move a main note to Trash and restore it; verify recoverable deletion still works.
+- [ ] Search citations by author/title/year/key; suggestions contain only keys and selection inserts only `[@key]`.
+- [ ] Check New Note labels, sidebar filters, Help shortcuts and Navigate bibliography commands against the guides.

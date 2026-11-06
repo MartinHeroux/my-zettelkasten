@@ -2,7 +2,7 @@
 
 Work only in the disposable example collection.
 
-1. Create at least three notes (Idea, Paper, Overview). Confirm the normal new-note button says **Idea**.
+1. Create Permanent, Literature and Entry-Point notes using **New Note ▾**. Confirm each category is correct.
 2. In a note type `[[`. Press Down twice, then Up once; selection should stay on the intended suggestion rather than jump to the top. Press Enter; confirm the selected note's link is inserted. Repeat with typed search text and Esc.
 3. Open notes A, B, C by clicking their sidebar entries. Back should open B, then A. Forward should open B, then C. Verify buttons disable at the ends.
 4. Navigate Back to B and then open a different note D; Forward should now be disabled.
@@ -37,10 +37,22 @@ If a problem occurs, report the steps and any terminal traceback.
 ## v0.3.1 — First-note creation regression
 
 1. Start the app with an empty disposable collection and **no note open**.
-2. Press **Ctrl+Shift+I**. Confirm an Idea note opens immediately without a
+2. Press **Ctrl+Shift+I**. Confirm an Permanent note opens immediately without a
    “No note” dialog. Save, restart, and confirm it reopens from the sidebar.
 3. Repeat from fresh empty collections for **Ctrl+Shift+P**, **Ctrl+Shift+O**,
    and **Ctrl+Shift+J** (Paper, Overview, Project).
 4. Repeat the same four actions using the toolbar buttons.
 5. Confirm creating a second note still works and citation completion still
    works with the sample bibliography.
+
+## Inbox and current-interface checks
+
+- [ ] Create fleeting notes using both New Note and Ctrl+Shift+N; verify Inbox count and title focus.
+- [ ] Develop a fleeting note; verify separate Permanent file, source retained, and editable content.
+- [ ] Cancel Discard; verify the source and recovery copies remain.
+- [ ] Confirm Discard; verify source/recovery copies are gone, no Trash entry was created, developed note remains, and waiting past autosave does not recreate the source.
+- [ ] Discard a newly created fleeting note before its first autosave.
+- [ ] Simulate deletion failure; verify an error is shown and the open note remains available.
+- [ ] Move a main note to Trash and restore it; verify recoverable deletion still works.
+- [ ] Search citations by author/title/year/key; suggestions contain only keys and selection inserts only `[@key]`.
+- [ ] Check New Note labels, sidebar filters, Help shortcuts and Navigate bibliography commands against the guides.

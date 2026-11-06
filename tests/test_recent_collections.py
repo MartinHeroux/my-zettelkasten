@@ -78,9 +78,24 @@ class RecentCollectionsTests(unittest.TestCase):
         self.assertIsNone(get_default_collection(self.prefs))
         self.assertEqual(
             get_recent_collections(self.prefs),
-            [str(folder)]
+            []
         )
         self.assertFalse(collection_is_valid(folder))
+
+    def test_missing_collection_reappears_when_restored(self):
+        folder = self.make_collection("Removable")
+        save_default_collection(folder, self.prefs)
+        moved = self.root / "Temporarily-elsewhere"
+        folder.rename(moved)
+        self.assertEqual(get_recent_collections(self.prefs), [])
+        moved.rename(folder)
+        self.assertEqual(get_recent_collections(self.prefs), [str(folder)])
+
+    def test_existing_non_collection_folder_hidden(self):
+        folder = self.root / "NotACollection"
+        folder.mkdir()
+        self.prefs.write_text(json.dumps({"recent_collections": [str(folder)]}), encoding="utf-8")
+        self.assertEqual(get_recent_collections(self.prefs), [])
 
     def test_legacy_preferences(self):
         a = self.make_collection("A")

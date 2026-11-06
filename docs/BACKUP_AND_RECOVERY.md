@@ -6,7 +6,7 @@ Start with a **disposable test collection** and complete [PILOT_CHECKLIST.md](PI
 
 ## Back up the entire collection
 
-Your collection contains `notes/` Markdown files, `attachments/`, `settings.json`, and recovery/trash folders. Back up the **whole collection** to an independent location (for example an external disk or versioned backup service), and periodically **test restoring** a copy. If the bibliography is stored outside the collection, back up that configuration/source separately as appropriate.
+Your collection contains `notes/` main Markdown files, `inbox/` fleeting notes, `attachments/`, `settings.json`, and recovery/trash folders. Back up the **whole collection** to an independent location (for example an external disk or versioned backup service), and periodically **test restoring** a copy. If the bibliography is stored outside the collection, back up that configuration/source separately as appropriate.
 
 The application's code and Python virtual environment are replaceable; your notes are not. Do not rely only on the `recovery/` directory, as it may reside on the same failing disk.
 
@@ -20,7 +20,10 @@ Relative links between Markdown notes and copied attachments should survive movi
 
 ## Restoring mistakes
 
-- Use **Trash** and **Restore** for accidentally deleted notes.
+- Use **Note → Move to Trash** and **Restore from Trash** for main notes.
+- **Discard** permanently removes a fleeting note and its recovery copies after confirmation. It cannot be restored through the app; independent backups or sync history may still hold older copies. The developed Permanent note is a separate file and remains intact.
+- **Develop** keeps the fleeting original in Inbox until you explicitly discard it.
+- Using Move to Trash on a fleeting note still moves it to collection Trash; restoring such a note currently puts it in `notes/`, not Inbox.
 - Use project archiving to hide completed project notes without deleting them.
 - For external-edit conflicts, preserve both versions rather than forcing an overwrite.
 - Recovery copies can help after some accidental changes, but their retention is bounded; check them before cleaning them out.

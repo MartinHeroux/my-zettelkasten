@@ -21,6 +21,7 @@ class OnboardingTests(unittest.TestCase):
     def test_preference_roundtrip(self):
         with tempfile.TemporaryDirectory() as tmp:
             base=Path(tmp); prefs=base/'preferences.json'
+            (base/'notes').mkdir()
             save_default_collection(base,prefs)
             self.assertEqual(get_default_collection(prefs),base)
 
