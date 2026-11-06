@@ -1,12 +1,3 @@
-# Unreleased working changes
-
-- Consolidated note creation under New Note; renamed Idea/Paper/Overview to Permanent/Literature/Entry-Point in the interface while retaining category compatibility.
-- Separate fleeting Inbox, count and Develop action; developed Permanent copies leave originals in Inbox.
-- Ctrl+Shift+N creates a fleeting note, with menu and Help entries.
-- Discard confirms permanent deletion of a fleeting note and its recovery copies, bypassing Trash; pending autosave is cancelled. Main-note Trash/Restore remains available.
-- Citation completion shows keys only and inserts `[@key]`.
-- Updated README, guides, audit, acceptance checks and first-run onboarding for current controls and workflows. Existing collection tutorials are not overwritten.
-
 # Changelog
 
 Notable changes to **My Zettelkasten**, listed from newest to oldest.
@@ -16,6 +7,15 @@ The application remains an experimental Linux pilot. See [ROADMAP.md](ROADMAP.md
 ## Unreleased
 
 Changes being developed for the next version will be documented here.
+
+## v0.5.5 — Fleeting Inbox and workflow improvements
+
+- Consolidated note creation under New Note; renamed Idea/Paper/Overview to Permanent/Literature/Entry-Point in the interface while retaining category compatibility.
+- Separate fleeting Inbox, count and Develop action; developed Permanent copies leave originals in Inbox.
+- Ctrl+Shift+N creates a fleeting note, with menu and Help entries.
+- Discard confirms permanent deletion of a fleeting note and its recovery copies, bypassing Trash; pending autosave is cancelled. Main-note Trash/Restore remains available.
+- Citation completion shows keys only and inserts `[@key]`.
+- Updated README, guides, audit, acceptance checks and first-run onboarding for current controls and workflows. Existing collection tutorials are not overwritten.
 
 ## v0.5.4 — Version information
 

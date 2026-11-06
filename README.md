@@ -6,7 +6,7 @@
 
 A lightweight, local-first Markdown note editor for **connecting ideas, papers, and projects**. Built with Python and Tkinter, inspired by the Zettelkasten workflow discussed in Sönke Ahrens’s *How to Take Smart Notes*.
 
-**Current version: 0.5.4 — experimental Linux pilot.**
+**Current version: 0.5.5 — experimental Linux pilot.**
 
 Tested by the project author on Linux Mint; other platforms are not yet verified. Back up your notes independently before relying on the application for important work.
 
@@ -48,7 +48,9 @@ The application is deliberately modest: it does not aim to replace Zotero, a PDF
 - **Help → About My Zettelkasten** displays the installed application version.
 - `--version` command-line option for checking the installed version.
 
-## Current working changes
+## Latest release — v0.5.5
+
+This release adds a dedicated fleeting-note workflow, simplifies note creation and citation completion, and updates the guides to match the interface.
 
 - Create a fleeting note with **Ctrl+Shift+N** or **New Note ▾ → Fleeting Note**.
 - Open **Inbox**, select a thought, and use **Develop** to create a Permanent note. Edit the developed copy; the original remains in Inbox.
@@ -59,13 +61,7 @@ The application is deliberately modest: it does not aim to replace Zotero, a PDF
 
 The current interface calls Idea notes **Permanent**, Paper notes **Literature**, and Overview notes **Entry-Point**. Existing Markdown category values (`idea`, `paper`, `overview`) remain compatible. Older screenshots may show earlier labels.
 
-## Latest release
-
-**v0.5.4 — Version Information**
-
-This release adds an About dialog and a command-line version option, making it easier to identify which version of My Zettelkasten is installed.
-
-For previous improvements, including collection management and Recent Collections, see the [Changelog](CHANGELOG.md) or [GitHub Releases](https://github.com/MartinHeroux/my-zettelkasten/releases).
+For the full release history, see the [Changelog](CHANGELOG.md) or [GitHub Releases](https://github.com/MartinHeroux/my-zettelkasten/releases).
 
 ## Installation (Linux Mint / Ubuntu)
 
