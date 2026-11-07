@@ -5,11 +5,13 @@ from zettelkasten.collection import template, scan, targets, category_of, title_
 
 class CollectionTests(unittest.TestCase):
     def test_templates(self):
-        for category in ('idea','paper','overview','project','inbox'):
+        for category in ('idea','overview','project','inbox'):
             value = template(category, 'Example')
             self.assertEqual(category_of(value), category)
             self.assertEqual(title_of(value), 'Example')
-        self.assertIn('## Methods and results', template('paper'))
+        with self.assertRaises(ValueError):
+            template('paper')
+        self.assertEqual(category_of('---\ncategory: paper\n---\n# Legacy'), 'uncategorised')
 
     def test_links_and_backlinks_inputs(self):
         with tempfile.TemporaryDirectory() as d:

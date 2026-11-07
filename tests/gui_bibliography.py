@@ -18,14 +18,11 @@ with TemporaryDirectory() as tmp:
     assert app.popup is not None, 'citation popup did not open'
     app._choose_completion()
     assert '[@smith2024]' in app._content(), app._content()
-    ref=app.references['smith2024']
-    with patch('zettelkasten.app.messagebox.askyesno',return_value=True):
-        app.open_paper_reference(ref)
-    assert 'source_key: "smith2024"' in app._content(), app._content()
-    previous=app.path
-    app.refresh_inventory()
-    assert len([n for n in app.inventory if n.get('source_key')=='smith2024']) == 1
-    app.open_paper_reference(ref)
-    assert app.path == previous
+    app._update_sources()
+    app.source_list.selection_set(0)
+    with patch('zettelkasten.app.messagebox.showinfo') as details:
+        app._source_double_click()
+    assert 'Motor Control' in details.call_args.args[1]
+    assert not hasattr(app, 'open_paper_reference')
     root.destroy()
 print('GUI bibliography regression passed')

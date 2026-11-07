@@ -15,8 +15,8 @@ import tkinter as tk
 from tkinter import filedialog, font, messagebox, simpledialog, ttk
 
 from .highlighting import spans
-from .bibliography import BibError, read_bib, paper_matches, paper_template
-from .collection import archived_of, title_of, category_of, scan, template, link_for, trash_note
+from .bibliography import BibError, read_bib
+from .collection import archived_of, title_of, category_of, scan, template, link_for, trash_note, update_placeholder_links
 from .onboarding import ensure_welcome, get_default_collection, save_default_collection, clear_default_collection, create_collection, collection_is_valid, get_recent_collections, clear_recent_collections
 from .storage import ExternalChangeError, load_note, new_note_path, preserve_unsaved_copy, save_note
 
@@ -121,7 +121,6 @@ class EditorApp:
         new_menu = tk.Menu(new_button, tearoff=False)
         for label, command in (
             ("Fleeting Note", self.new_fleeting),
-            ("Literature Note", lambda: self.new_category("paper")),
             ("Permanent Note", self.new),
             ("Project Note", lambda: self.new_category("project")),
             ("Entry-Point Note", lambda: self.new_category("overview")),
@@ -135,14 +134,13 @@ class EditorApp:
             ("Save", self.save),
             ("Back", self.go_back),
             ("Forward", self.go_forward),
-            ("References", self.choose_reference),
             ("Find", self.find),
         ):
             button = ttk.Button(bar, text=label, command=command)
             button.pack(side="left", padx=(0, 6))
             self.toolbar_buttons[label] = button
         self.fleeting_actions = []
-        for label, action in (("Develop", self.develop_fleeting), ("Discard", self.discard_fleeting)):
+        for label, action in (("Develop", self.develop_fleeting),):
             button = ttk.Button(bar, text=label, command=action, state='disabled')
             button.pack(side='left', padx=(0, 5))
             self.fleeting_actions.append(button)
@@ -163,7 +161,7 @@ class EditorApp:
         self.sidebar_search.pack(fill="x", pady=4)
         self.filter_var = tk.StringVar(value="All")
         # Read-only section headings and separators in a dropdown, not fake filters.
-        self.filter_choices = ("All", "Recent", "Pinned", "────────────", "Permanent", "Literature", "Project", "Entry Point", "─────────────", "Unlinked", "Archived", "Uncategorised")
+        self.filter_choices = ("All", "Recent", "Pinned", "────────────", "Permanent", "Project", "Entry Point", "─────────────", "Unlinked", "Archived", "Uncategorised")
         self.filter_combo = ttk.Combobox(left, textvariable=self.filter_var, values=self.filter_choices, state="readonly")
         self.filter_combo.pack(fill="x", pady=4)
         self.filter_combo.bind('<<ComboboxSelected>>', self._filter_selected)
@@ -238,25 +236,23 @@ class EditorApp:
         shortcuts = {
             '<Control-Shift-N>': self.new_fleeting,
             '<Control-Shift-I>': self.new,
-            '<Control-Shift-P>': lambda: self.new_category('paper'),
             '<Control-Shift-O>': lambda: self.new_category('overview'),
             '<Control-Shift-J>': lambda: self.new_category('project'),
             '<Control-Shift-L>': self.new_linked,
             '<Control-Shift-A>': self.attach,
             '<Control-Shift-F>': self._focus_sidebar_search,
             '<Control-Shift-K>': self.toggle_pin,
-            '<Control-Shift-R>': self.choose_reference,
             '<Alt-Left>': self.go_back,
             '<Alt-Right>': self.go_forward,
         }
         for sequence, action in shortcuts.items():
             self.root.bind(sequence, lambda event, fn=action: self._run_shortcut(fn))
         # Some Tk/Linux keyboard layouts report uppercase shortcuts differently.
-        for letter, action in [('n',self.new_fleeting),('i',self.new),('p',lambda: self.new_category('paper')),
+        for letter, action in [('n',self.new_fleeting),('i',self.new),
                                ('o',lambda: self.new_category('overview')),
                                ('j',lambda: self.new_category('project')),
                                ('l',self.new_linked),('a',self.attach),
-                               ('f',self._focus_sidebar_search),('k',self.toggle_pin),('r',self.choose_reference)]:
+                               ('f',self._focus_sidebar_search),('k',self.toggle_pin)]:
             self.root.bind(f'<Control-Shift-{letter}>', lambda event, fn=action: self._run_shortcut(fn))
 
     def _filter_selected(self, event=None):
@@ -287,7 +283,6 @@ class EditorApp:
         for label, action, shortcut in (
             ('New Fleeting Note', self.new_fleeting, 'Ctrl+Shift+N'),
             ('New Permanent Note', self.new, 'Ctrl+Shift+I'),
-            ('New Literature Note', lambda: self.new_category('paper'), 'Ctrl+Shift+P'),
             ('New Project Note', lambda: self.new_category('project'), 'Ctrl+Shift+J'),
             ('New Entry-Point Note', lambda: self.new_category('overview'), 'Ctrl+Shift+O'),
             ('New Linked Note', self.new_linked, 'Ctrl+Shift+L'),
@@ -300,6 +295,7 @@ class EditorApp:
             ('Archive / Unarchive', self.toggle_archive, ''),
             ('Move to Trash', self.delete_note, ''),
             ('Restore from Trash', self.restore_note, ''),
+            ('Delete Permanently…', self.permanently_delete_note, ''),
         ):
             notemenu.add_command(label=label, command=action, accelerator=shortcut)
         menu.add_cascade(label='Note', menu=notemenu)
@@ -311,7 +307,6 @@ class EditorApp:
             ('Search Notes', self._focus_sidebar_search, 'Ctrl+Shift+F'),
             ('Find in Current Note', self.find, 'Ctrl+F'),
             ('Fleeting Inbox', self.show_inbox, ''),
-            ('Find Reference / Paper Note', self.choose_reference, 'Ctrl+Shift+R'),
             ('Choose Bibliography', self.choose_bibliography, ''),
             ('Reload Bibliography', lambda: self.refresh_bibliography(force=True), ''),
             ('Refresh Notes', self.refresh_inventory, ''),
@@ -346,13 +341,13 @@ class EditorApp:
 
     def _show_shortcuts(self):
         messagebox.showinfo('Keyboard shortcuts',
-            'New Fleeting: Ctrl+Shift+N\nNew Permanent: Ctrl+Shift+I\nNew Literature: Ctrl+Shift+P\n'
+            'New Fleeting: Ctrl+Shift+N\nNew Permanent: Ctrl+Shift+I\n'
             'New Entry-Point: Ctrl+Shift+O\nNew Project: Ctrl+Shift+J\n'
             'New linked note: Ctrl+Shift+L\nAttach: Ctrl+Shift+A\n'
             'Save: Ctrl+S\nOpen: Ctrl+O\nSearch notes: Ctrl+Shift+F\n'
             'Find in note: Ctrl+F\nBack / Forward: Alt+Left / Alt+Right\n'
             'Pin / Unpin: Ctrl+Shift+K\nUndo / Redo: Ctrl+Z / Ctrl+Y\n'
-            'References: Ctrl+Shift+R\nCitation completion: [@ then type\n'
+            'Citation completion: [@ then type\n'
             'Markdown link completion: [[ then type; arrows, Enter, Esc', parent=self.root)
 
     def _set_fonts(self):
@@ -589,6 +584,9 @@ class EditorApp:
         self.conflicted = False
         self._refresh_inbox_count()
         self._set_status(f"Saved {self.path.name}{' (autosave)' if automatic else ''}")
+        failures = update_placeholder_links(self.notes_dir, self.path, self._content(), self.recovery_dir)
+        if failures:
+            self._set_status('Note saved; could not update link labels in: ' + ', '.join(failures))
         self.refresh_inventory()
         return True
 
@@ -679,70 +677,6 @@ class EditorApp:
             self.bib_error = str(error)
             self._set_status(f'Bibliography unavailable ({error}); retaining {len(self.references)} last good references')
 
-    def choose_reference(self):
-        self.refresh_bibliography()
-        if not self.references:
-            messagebox.showinfo('No references', 'Choose a Better BibTeX .bib export using File > Choose bibliography.', parent=self.root)
-            return
-        window = tk.Toplevel(self.root)
-        window.title('References — open or create paper note')
-        window.geometry('850x460')
-        window.transient(self.root)
-        frame = ttk.Frame(window, padding=10)
-        frame.pack(fill='both', expand=True)
-        query = tk.StringVar()
-        entry = ttk.Entry(frame, textvariable=query)
-        entry.pack(fill='x')
-        listbox = tk.Listbox(frame, exportselection=False)
-        listbox.pack(fill='both', expand=True, pady=8)
-        matches = []
-        def populate(*_):
-            needle = query.get().casefold().strip()
-            matches[:] = sorted((r for r in self.references.values() if needle in r.search_text),
-                                key=lambda r: (not r.title.casefold().startswith(needle), r.title.casefold()))[:100]
-            listbox.delete(0, 'end')
-            for ref in matches:
-                listbox.insert('end', ref.key)
-            if matches: listbox.selection_set(0)
-        def open_selected(event=None):
-            selection = listbox.curselection()
-            if not selection: return
-            ref = matches[selection[0]]
-            window.destroy()
-            self.open_paper_reference(ref)
-        query.trace_add('write', populate)
-        entry.bind('<Return>', open_selected)
-        listbox.bind('<Double-Button-1>', open_selected)
-        listbox.bind('<Return>', open_selected)
-        window.bind('<Escape>', lambda e: window.destroy())
-        ttk.Button(frame, text='Open / Create paper note', command=open_selected).pack(anchor='e')
-        populate()
-        entry.focus_set()
-
-    def open_paper_reference(self, ref):
-        matches = paper_matches(self.inventory, ref.key)
-        if len(matches) == 1:
-            return self.open_note(matches[0]['path'])
-        if len(matches) > 1:
-            messagebox.showwarning('Multiple paper notes',
-                'More than one paper note has this source_key. Choose one in All notes:\n\n' +
-                '\n'.join(n['title'] + ' — ' + n['path'].name for n in matches), parent=self.root)
-            return False
-        if not messagebox.askyesno('Create paper note',
-                f'No associated paper note for {ref.key}. Create one?', parent=self.root):
-            return False
-        if not self._guard_unsaved(): return False
-        target = new_note_path(self.notes_dir)
-        try:
-            save_note(target, paper_template(ref), None, self.recovery_dir)
-        except OSError as error:
-            messagebox.showerror('Create failed', str(error), parent=self.root)
-            return False
-        opened = self.open_note(target)
-        if opened:
-            self._focus_title()
-        return opened
-
     def _update_sources(self):
         if not hasattr(self, 'source_list'): return
         content = self._content() if self.path else ''
@@ -763,11 +697,7 @@ class EditorApp:
         if not ref:
             messagebox.showwarning('Unknown citation', f'No reference for {key}', parent=self.root)
             return
-        matches = paper_matches(self.inventory, key)
-        other = [n for n in self.inventory if n['path'] != self.path and ('[@'+key) in n['content']]
-        summary = ref.full_reference() + '\n\nPaper notes: ' + str(len(matches)) + '\nOther citing notes: ' + str(len(other))
-        if messagebox.askyesno('Source information', summary + '\n\nOpen or create its paper note?', parent=self.root):
-            self.open_paper_reference(ref)
+        messagebox.showinfo('Source information', ref.full_reference(), parent=self.root)
 
     def _populate_list(self):
         if not hasattr(self, 'note_list'):
@@ -790,7 +720,7 @@ class EditorApp:
             linked = set().union(*(n['targets'] for n in notes)) if notes else set()
             notes = [n for n in notes if n['path'] not in linked and not (n['targets'] - {n['path']})]
         elif mode != 'All':
-            category = {'Permanent': 'idea', 'Literature': 'paper',
+            category = {'Permanent': 'idea',
                         'Entry Point': 'overview', 'Project': 'project',
                         'Uncategorised': 'uncategorised'}.get(mode, mode)
             notes = [n for n in notes if n['category'] == category]
@@ -1016,29 +946,30 @@ class EditorApp:
             return
         if self._load(target):
             self._set_status('Permanent note created. Edit and save it; the fleeting source remains in Inbox.')
-            messagebox.showinfo('Permanent note created', 'A new permanent note has been created from the fleeting note. The original remains in Inbox until you explicitly discard it.')
+            messagebox.showinfo('Permanent note created', 'A new permanent note has been created from the fleeting note. The original remains in Inbox until you move it to Trash or delete it using the Note menu.')
 
-    def discard_fleeting(self):
-        if not self.path or self.path.parent.resolve() != self.inbox_dir.resolve():
+    def permanently_delete_note(self):
+        """Delete the open note and its local recovery versions after confirmation."""
+        if not self.path:
             return
         if not messagebox.askyesno(
-            'Permanently discard fleeting note',
+            'Delete permanently',
             f'Permanently delete {self.path.name} and its recovery copies?\n\n'
-            'This cannot be undone with Restore from Trash.', parent=self.root
+            'This cannot be undone with Restore from Trash. Independent backups '
+            'and Dropbox history may still contain copies.', parent=self.root
         ):
             return
-        discarded = self.path
+        removed = self.path
         try:
-            # Remove saved versions first; retain the source if cleanup fails.
-            for recovery in self.recovery_dir.glob(f'{discarded.stem}.*.md'):
+            for recovery in self.recovery_dir.glob(f'{removed.stem}.*.md'):
                 recovery.unlink()
-            discarded.unlink(missing_ok=True)
+            removed.unlink(missing_ok=True)
         except OSError as error:
-            messagebox.showerror('Discard failed', str(error), parent=self.root)
+            messagebox.showerror('Delete failed', str(error), parent=self.root)
             return
-        self._clear_removed_note(discarded)
+        self._clear_removed_note(removed)
         self._refresh_inbox_count()
-        self._set_status('Fleeting note permanently deleted')
+        self._set_status('Note and local recovery copies permanently deleted')
 
     def new_linked(self):
         """Branch to a new idea; persist the source link before navigating."""
@@ -1056,7 +987,7 @@ class EditorApp:
             return
         target = new_note_path(self.notes_dir)
         # The source link needs a readable label before the target has a title.
-        # It can be edited in ordinary Markdown later without changing the ID.
+        # Saving the target title replaces this placeholder without changing its ID.
         label = 'New linked idea'
         content = template('idea') + ('\n' + selected + '\n' if selected else '')
         try:
@@ -1099,12 +1030,16 @@ class EditorApp:
         if not self._guard_unsaved():
             return
         try:
-            moved = trash_note(self.path, self.collection / 'trash')
+            destination = self.collection / 'trash'
+            if self.path.parent.resolve() == self.inbox_dir.resolve():
+                destination = destination / 'inbox'
+            moved = trash_note(self.path, destination)
         except OSError as error:
             messagebox.showerror('Trash failed', str(error))
             return
         self._clear_removed_note(moved)
-        self._set_status(f'Moved to {moved}')
+        self._refresh_inbox_count()
+        self._set_status('Moved to Trash; use Note → Restore from Trash to recover it')
 
     def _clear_removed_note(self, removed):
         # Pending autosave must not recreate a discarded note.
@@ -1127,7 +1062,7 @@ class EditorApp:
     def restore_note(self):
         """Restore a deleted note without overwriting a file with the same ID."""
         trash = self.collection / 'trash'
-        candidates = sorted(trash.glob('*.md')) if trash.exists() else []
+        candidates = sorted(trash.rglob('*.md')) if trash.exists() else []
         if not candidates:
             messagebox.showinfo('Restore', 'There are no deleted Markdown notes to restore.', parent=self.root)
             return
@@ -1148,7 +1083,8 @@ class EditorApp:
             selection = items.curselection()
             if not selection: return
             source = candidates[selection[0]]
-            destination = self.notes_dir / source.name
+            folder = self.inbox_dir if source.parent == trash / 'inbox' else self.notes_dir
+            destination = folder / source.name
             if destination.exists():
                 messagebox.showerror('Cannot restore', 'A note with that filename already exists. Nothing was overwritten.', parent=window)
                 return

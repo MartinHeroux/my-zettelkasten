@@ -10,7 +10,7 @@ with TemporaryDirectory() as d:
     app.new_category('idea')
     app.save()
     first = app.path
-    app.new_category('paper')
+    app.new_category('project')
     app.save()
     second = app.path
     assert len(app.inventory) == 4  # two onboarding notes plus two created notes

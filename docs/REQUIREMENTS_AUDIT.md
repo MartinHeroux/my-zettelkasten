@@ -1,20 +1,13 @@
-# Current implementation audit
+# Verification for v0.5.6
 
-This records behaviour found in the current source, rather than certifying desktop acceptance. Historical releases are listed in the Changelog.
+Run `PYTHONPATH=src python -m unittest discover -s tests` for headless regression checks.
 
-| Area | Current implementation | Remaining verification |
-|---|---|---|
-| Collections | Welcome screen, create/open/close, last-used collection, up to 10 Recent Collections; unavailable collections are not silently recreated | Desktop switching and unavailable Dropbox folders |
-| Note creation | New Note menu: Fleeting, Permanent, Literature, Project, Entry-Point; stable filenames and title focus | Keyboard and menu parity on Linux Mint |
-| Inbox | Separate `inbox/`, count, open, Develop to separate Permanent note; original retained | Full capture/process workflow |
-| Discard | Fleeting original and recovery copies permanently deleted after confirmation; autosave cancelled and visit history cleared for deleted note | Desktop confirmation/cancellation and no recreation after autosave delay |
-| Main-note deletion | Move to collection Trash and Restore; restored files go to `notes/` | Restore collision handling; fleeting origin is not tracked |
-| Editing | Markdown syntax styling, autosave, recovery, external-change conflict detection | Real-world conflict and failure checks |
-| Linking | Note completion, outgoing links, backlinks, missing-target indication, linked-note creation, Back/Forward | Complex Markdown syntax remains limited |
-| Sources | Read-only Better BibTeX, key-only suggestions, citation insertion, associated Literature notes, last-good session cache | Live and complex Better BibTeX exports |
-| Discovery | Search, result count, pinning; All, Recent, Pinned, Permanent, Literature, Project, Entry Point, Unlinked, Archived, Uncategorised | Larger collections and filter interaction |
-| Navigation | Markdown links at cursor; explicit web/Zotero URLs through system handler | Desktop URL handlers |
-| Onboarding | Pinned editable Start here and linked tutorial, only for empty uninitialised collections | Existing tutorial notes are intentionally not overwritten |
-| Attachments | Copies into collection; relative links and system opener | Desktop image/PDF handling |
-
-Use [Pilot checklist](PILOT_CHECKLIST.md) for remaining manual checks. No automatic Zotero-note synchronization, graph interface or rendered Markdown preview is implemented.
+Desktop checks:
+- Create each supported note type: Fleeting, Permanent, Project, Entry-Point. Verify Literature and References controls and shortcuts are absent.
+- Choose a bibliography; verify `[@` completion and Sources cited reference details.
+- Develop a fleeting note; verify the original remains and the new note is separate.
+- Cancel permanent deletion; verify note and recovery files remain. Confirm deletion for a disposable fleeting and permanent note, and wait beyond autosave to ensure it is not recreated.
+- Move main and Inbox notes to Trash; restore each to its original folder. Verify an existing filename is never overwritten.
+- Archive, save and reopen a project; find it under Archived and unarchive it.
+- Edit and autosave repeatedly; verify no more than ten saved recovery versions per note and unchanged conflict detection.
+- Verify legacy paper/literature files remain editable and links continue to work under All / Uncategorised.

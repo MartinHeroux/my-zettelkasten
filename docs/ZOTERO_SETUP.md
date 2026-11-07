@@ -1,6 +1,6 @@
 # Connect Zotero using Better BibTeX
 
-This guide connects a **local, automatically updated `.bib` export** to Personal Zettelkasten. Zotero manages source records, PDFs, and annotations; the app reads bibliographic metadata for citation completion and Paper-note lookup. The app does **not** write to Zotero or import its notes automatically.
+This guide connects a **local, automatically updated `.bib` export** to Personal Zettelkasten. Zotero manages source records, PDFs, and annotations; the app reads bibliographic metadata for citation completion. The app does **not** write to Zotero or import its notes automatically.
 
 ## 1. Install the tools
 
@@ -22,9 +22,9 @@ This is Better BibTeX's **automatic export**, not the application's Markdown aut
 
 1. Open the application and your intended collection.
 2. Select **Navigate → Choose Bibliography** and choose the exported `.bib` file.
-3. Open **References** (or press `Ctrl+Shift+R`) and check that papers appear.
+3. In a note, type `[@` and check that citation suggestions appear.
 4. In a note, type `[@` and part of an author name, title, year or citation key. Suggestions show citation keys only; search still matches authors, titles, years and keys. Select with arrows and Enter to insert `[@key]` without reference text.
-5. Use References to create a Literature note associated with the exact exported citation key; selecting the same reference later should reopen the existing Literature note.
+5. Write literature notes directly in Zotero, attached to their references.
 
 The chosen bibliography path is saved in the **collection settings**, so it should persist across application sessions. Different collections can point to different exports. The app reloads the bibliography when reference features are accessed and a change is detected; it does not continuously watch the file in the background.
 
@@ -33,7 +33,7 @@ The chosen bibliography path is saved in the **collection settings**, so it shou
 1. Open the `.bib` file in a text editor (read-only, if possible) and note a known reference.
 2. Add a test reference in Zotero or change a nonessential field of an existing test entry.
 3. Allow Better BibTeX a moment to update its export, then reopen/reload the `.bib` file to confirm the change appeared.
-4. Reopen References in Personal Zettelkasten or trigger `[@` completion and check for the change.
+4. Trigger `[@` completion and check for the change.
 5. Revert your test change if appropriate.
 
 If the file is missing, moved, temporarily unreadable or partially written, the app should report the issue and retain the last successfully loaded references **within the current session**. The saved path is not automatically repaired; reselect the file after moving it. Do not rely on the cached list after restarting while the file is unavailable.

@@ -1,3 +1,5 @@
+> Workflow update (v0.5.6): All source-specific literature notes in this example belong in Zotero. In the app, keep Permanent, Project and Entry-Point notes; cite sources with `[@key]`. Literature notes in Zotero are not local `[[` link targets. Older diagrams below illustrate conceptual relationships.
+
 # Portable EMG Project in the Zettelkasten
 
 *A practical worked example of using Literature, Permanent and Project notes together*
@@ -231,7 +233,7 @@ The relationships emerge from the work.
 
 Imagine a typical week.
 
-**Monday — Read the published paper.** Open the PDF in Zotero and create a Literature note in our application. Record the architecture, reported performance, relevant figures and uncertainties. Create an Permanent note if you need to develop an explanation of amplifier recovery.
+**Monday — Read the published paper.** Open the PDF in Zotero and create a literature note in Zotero. Record the architecture, reported performance, relevant figures and uncertainties. Create an Permanent note if you need to develop an explanation of amplifier recovery.
 
 **Tuesday — Work through the thesis.** Create a separate Literature note. Link it to the publication. Extract technical details needed to understand the design, and note which questions remain unanswered. Don't create an Permanent note for every resistor or circuit component.
 
@@ -253,7 +255,7 @@ Suppose your notebook contains:
 
 > Need to check if amplifier can recover quickly enough after pulse. Maybe the artifact problem is more important than resolution. Ask engineer.
 
-That is a perfectly good fleeting note. Capture it with `Ctrl+Shift+N` and return to it through **Inbox**. Use **Develop** if it needs a new Permanent note, or transfer the useful parts into existing notes. Once processed, reopen the original and use **Discard**; confirmation permanently deletes it and its recovery copies, leaving developed notes intact.
+That is a perfectly good fleeting note. Capture it with `Ctrl+Shift+N` and return to it through **Inbox**. Use **Develop** if it needs a new Permanent note, or transfer the useful parts into existing notes. Once processed, reopen the original and use **Note → Delete Permanently**; confirmation permanently deletes it and its recovery copies, leaving developed notes intact.
 
 When you process it, you might separate it into three parts:
 

@@ -154,18 +154,3 @@ def parse_bib(text: str) -> dict[str, Reference]:
 
 def read_bib(path: Path) -> dict[str, Reference]:
     return parse_bib(path.read_text(encoding='utf-8-sig'))
-
-def paper_matches(inventory: list[dict], key: str) -> list[dict]:
-    return [note for note in inventory if note['category'] == 'paper' and note.get('source_key') == key]
-
-def paper_template(ref: Reference) -> str:
-    # Bib keys are stored in YAML as JSON-quoted strings to handle punctuation.
-    import json
-    heading = (ref.title or ref.key).replace('\n', ' ')
-    return (f'---\ncategory: paper\nsource_key: {json.dumps(ref.key, ensure_ascii=False)}\n---\n\n'
-            f'# {heading}\n\n## Reference\n\n{ref.full_reference()}\n\n'
-            f'Citation: [@{ref.key}]\n\n'
-            '## What the paper contributes\n\n'
-            '## Methods and results worth remembering\n\n'
-            '## My observations and questions\n\n'
-            '## Connections and developed ideas\n')

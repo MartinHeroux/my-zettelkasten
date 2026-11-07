@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from zettelkasten.bibliography import parse_bib, read_bib, BibError, paper_template, paper_matches
+from zettelkasten.bibliography import parse_bib, read_bib, BibError
 from zettelkasten.collection import scan
 
 SAMPLE = r'''@article{garcia2024Reach,
@@ -25,15 +25,6 @@ class TestBib(unittest.TestCase):
         self.assertIn('nested', refs['garcia2024Reach'].field('note'))
     def test_invalid_file(self):
         with self.assertRaises(BibError): parse_bib('@article{broken, title={oops}')
-    def test_paper_association(self):
-        ref = parse_bib(SAMPLE)['garcia2024Reach']
-        with TemporaryDirectory() as tmp:
-            notes = Path(tmp)
-            (notes/'n_123.md').write_text(paper_template(ref))
-            inventory = scan(notes)
-            self.assertEqual(len(paper_matches(inventory, ref.key)), 1)
-            self.assertEqual(inventory[0]['source_key'], ref.key)
-            self.assertIn('## My observations and questions', inventory[0]['content'])
     def test_real_export(self):
         real = Path('/mnt/data/My Library.bib')
         if real.exists():

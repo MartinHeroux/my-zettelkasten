@@ -32,7 +32,7 @@ class FleetingTests(TestCase):
         developed = self.base / 'permanent.md'
         developed.write_text('developed thought')
         with patch('zettelkasten.app.messagebox.askyesno', return_value=True):
-            self.app.discard_fleeting()
+            self.app.permanently_delete_note()
         self.assertFalse(self.app.path.exists())
         self.assertFalse(self.recovery.exists())
         self.assertTrue(self.other.exists())
@@ -42,7 +42,7 @@ class FleetingTests(TestCase):
 
     def test_cancel_keeps_source_and_recovery(self):
         with patch('zettelkasten.app.messagebox.askyesno', return_value=False):
-            self.app.discard_fleeting()
+            self.app.permanently_delete_note()
         self.assertTrue(self.app.path.exists())
         self.assertTrue(self.recovery.exists())
         self.app._clear_removed_note.assert_not_called()
@@ -50,25 +50,24 @@ class FleetingTests(TestCase):
     def test_discard_before_first_autosave(self):
         self.app.path.unlink()
         with patch('zettelkasten.app.messagebox.askyesno', return_value=True):
-            self.app.discard_fleeting()
+            self.app.permanently_delete_note()
         self.app._clear_removed_note.assert_called_once()
 
     def test_failure_keeps_editor_open(self):
         with patch('zettelkasten.app.messagebox.askyesno', return_value=True), \
              patch.object(Path, 'unlink', side_effect=PermissionError('read only')), \
              patch('zettelkasten.app.messagebox.showerror') as error:
-            self.app.discard_fleeting()
+            self.app.permanently_delete_note()
         error.assert_called_once()
         self.assertTrue(self.app.path.exists())
         self.app._clear_removed_note.assert_not_called()
 
-    def test_main_note_cannot_be_discarded(self):
+    def test_main_note_can_be_permanently_deleted(self):
         self.app.path = self.base / 'main.md'
         self.app.path.write_text('permanent')
-        with patch('zettelkasten.app.messagebox.askyesno') as confirm:
-            self.app.discard_fleeting()
-        confirm.assert_not_called()
-        self.assertTrue(self.app.path.exists())
+        with patch('zettelkasten.app.messagebox.askyesno', return_value=True):
+            self.app.permanently_delete_note()
+        self.assertFalse(self.app.path.exists())
 
     def test_removed_note_cancels_jobs_and_clears_history(self):
         app = self.app
@@ -92,7 +91,7 @@ class FleetingTests(TestCase):
     def test_fleeting_shortcut_both_keyboard_variants(self):
         app = self.app
         for name in ['new', 'new_fleeting', 'new_category', 'new_linked', 'attach',
-                     '_focus_sidebar_search', 'toggle_pin', 'choose_reference',
+                     '_focus_sidebar_search', 'toggle_pin',
                      'go_back', 'go_forward']:
             setattr(app, name, Mock())
         app._install_shortcuts()
