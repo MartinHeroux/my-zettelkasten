@@ -255,7 +255,7 @@ Suppose your notebook contains:
 
 > Need to check if amplifier can recover quickly enough after pulse. Maybe the artifact problem is more important than resolution. Ask engineer.
 
-That is a perfectly good fleeting note. Capture it with `Ctrl+Shift+N` and return to it through **Inbox**. Use **Develop** if it needs a new Permanent note, or transfer the useful parts into existing notes. Once processed, reopen the original and use **Note → Delete Permanently**; confirmation permanently deletes it and its recovery copies, leaving developed notes intact.
+That is a perfectly good fleeting note. Capture it with `Ctrl+Shift+N` and return to it through **Inbox**. Use **Develop** if it needs a new Permanent note, or transfer the useful parts into existing notes. **Develop** saves and opens the Permanent note, then permanently deletes the fleeting original and its recovery copies automatically. If you instead transfer text into existing notes, use **Note → Move to Trash** or **Delete Permanently** when finished.
 
 When you process it, you might separate it into three parts:
 

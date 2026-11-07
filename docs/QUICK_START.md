@@ -1,7 +1,7 @@
 # Reading, thinking and writing
 
 1. Capture a fleeting thought with **Ctrl+Shift+N**. Open **Inbox** to revisit it.
-2. **Develop** creates a separate Permanent note and leaves the original intact.
+2. **Develop** saves and opens a Permanent note, then permanently deletes the fleeting original and its recovery copies. No additional confirmation is shown. If saving or opening fails, the original is kept.
 3. Read PDFs and write source-specific literature notes in **Zotero**.
 4. Choose your Better BibTeX export under **Navigate → Choose Bibliography**. Type `[@` to insert a citation key. Double-click a Sources cited entry to inspect its reference.
 5. Write your explanations, arguments and connections in Permanent notes. Type `[[` to link ideas; use Linked Note to branch.

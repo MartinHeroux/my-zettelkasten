@@ -1,3 +1,11 @@
+# v0.5.9
+
+Removed Save toolbar button; File → Save, Ctrl+S and autosave remain. Grouped toolbar as New Note / Linked Note, Inbox / Develop, and Back / Forward / Find with vertical separators.
+
+# v0.5.8
+
+Develop now saves and opens the Permanent note before permanently deleting the fleeting source and its recovery copies. Removed the extra information dialog. Save/open failures retain the original; cleanup failures are reported. Updated workflow guides.
+
 # v0.5.7
 
 Added explicit editor Ctrl+A/C/X/V bindings and Edit menu. Keep selection visible after focus changes; cut/paste have undo boundaries and handle an empty clipboard or absent selection. Ctrl+P unchanged.

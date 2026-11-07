@@ -24,7 +24,7 @@ Relative links between Markdown notes and copied attachments should survive movi
 
 - **Note → Move to Trash** moves the note into `trash/` and retains recovery history. **Restore from Trash** restores it without overwriting an existing file. Fleeting notes trashed in this version return to Inbox; older Trash files without Inbox provenance return to notes.
 - **Note → Delete Permanently** deletes the open note and its local recovery copies after confirmation. It bypasses Trash; independent backups or Dropbox history may retain copies. Attached files and other notes are not deleted. Use the file manager to remove files already in Trash if needed.
-- **Develop** creates a separate Permanent note and leaves the original in Inbox.
+- **Develop** saves and opens a Permanent note, then permanently deletes the fleeting original and its recovery copies.
 - **Note → Archive / Unarchive** marks project notes as archived. Save the change; Archived lists them and unarchiving returns them to normal lists. Their files and links remain intact.
 
 Do not overwrite your only good copy during recovery. Back up the whole collection independently.

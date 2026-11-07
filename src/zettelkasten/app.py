@@ -129,22 +129,23 @@ class EditorApp:
             new_menu.add_command(label=label, command=command)
         new_button.configure(menu=new_menu)
         new_button.pack(side="left", padx=(0, 10))
-        for label, command in (
-            ("Linked Note", self.new_linked),
-            ("Inbox", self.show_inbox),
-            ("Save", self.save),
-            ("Back", self.go_back),
-            ("Forward", self.go_forward),
-            ("Find", self.find),
-        ):
-            button = ttk.Button(bar, text=label, command=command)
-            button.pack(side="left", padx=(0, 6))
-            self.toolbar_buttons[label] = button
         self.fleeting_actions = []
-        for label, action in (("Develop", self.develop_fleeting),):
-            button = ttk.Button(bar, text=label, command=action, state='disabled')
-            button.pack(side='left', padx=(0, 5))
-            self.fleeting_actions.append(button)
+        groups = (
+            (("Linked Note", self.new_linked),),
+            (("Inbox", self.show_inbox), ("Develop", self.develop_fleeting)),
+            (("Back", self.go_back), ("Forward", self.go_forward), ("Find", self.find)),
+        )
+        for index, group in enumerate(groups):
+            if index:
+                ttk.Separator(bar, orient="vertical").pack(
+                    side="left", fill="y", padx=(4, 10), pady=2)
+            for label, command in group:
+                button = ttk.Button(bar, text=label, command=command,
+                                    state='disabled' if label == 'Develop' else 'normal')
+                button.pack(side="left", padx=(0, 6))
+                self.toolbar_buttons[label] = button
+                if label == 'Develop':
+                    self.fleeting_actions.append(button)
         self.path_label = ttk.Label(bar, text="No note open")
         self.path_label.pack(side="left", padx=12)
         body = ttk.PanedWindow(self.root, orient="horizontal")
@@ -992,7 +993,7 @@ class EditorApp:
         except OSError as error:
             messagebox.showerror('Cannot develop note', str(error))
             return
-        # Create the destination before offering to remove the source.
+        # Save and open the destination before permanently removing the source.
         target = new_note_path(self.notes_dir)
         developed = template('idea') + '\n## From fleeting note\n\n' + content + '\n'
         try:
@@ -1000,9 +1001,25 @@ class EditorApp:
         except OSError as error:
             messagebox.showerror('Cannot develop note', str(error))
             return
-        if self._load(target):
-            self._set_status('Permanent note created. Edit and save it; the fleeting source remains in Inbox.')
-            messagebox.showinfo('Permanent note created', 'A new permanent note has been created from the fleeting note. The original remains in Inbox until you move it to Trash or delete it using the Note menu.')
+        if not self._load(target):
+            return
+        try:
+            for recovery in self.recovery_dir.glob(f'{source.stem}.*.md'):
+                recovery.unlink()
+            source.unlink()
+        except OSError as error:
+            messagebox.showwarning(
+                'Permanent note saved; cleanup incomplete',
+                f'The Permanent note was saved and opened, but the fleeting original '
+                f'could not be fully removed. Check Inbox.\n\n{error}', parent=self.root)
+            self._set_status('Permanent note saved; fleeting cleanup incomplete')
+            self._refresh_inbox_count()
+            return
+        self.history = [entry for entry in self.history if entry[0] != source]
+        self.future = [entry for entry in self.future if entry[0] != source]
+        self.refresh_inventory()
+        self._update_history_buttons()
+        self._set_status('Developed into a Permanent note; fleeting original and recovery copies deleted')
 
     def permanently_delete_note(self):
         """Delete the open note and its local recovery versions after confirmation."""
