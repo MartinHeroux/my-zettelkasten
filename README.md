@@ -6,7 +6,7 @@
 
 A lightweight, local-first Markdown note editor for **connecting ideas, papers, and projects**. Built with Python and Tkinter, inspired by the Zettelkasten workflow discussed in Sönke Ahrens’s *How to Take Smart Notes*.
 
-**Current version: 0.5.6 — experimental Linux pilot.**
+**Current version: 0.5.7 — experimental Linux pilot.**
 
 Tested by the project author on Linux Mint; other platforms are not yet verified. Back up your notes independently before relying on the application for important work.
 
@@ -48,7 +48,11 @@ The application is deliberately modest: it does not aim to replace Zotero, a PDF
 - **Help → About My Zettelkasten** displays the installed application version.
 - `--version` command-line option for checking the installed version.
 
-## Latest release — v0.5.6
+## Latest release — v0.5.7
+
+- Explicit Ctrl+A/C/X/V shortcuts for selecting, copying, cutting and pasting editor text, plus an Edit menu. Selection stays visible when focus changes.
+
+### Changes retained from v0.5.6
 
 - Literature-note creation, category filter, References window and their shortcuts have been removed. Literature notes now belong in Zotero.
 - Citation completion (`[@`), bibliography selection and the Sources cited panel remain.

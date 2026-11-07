@@ -2,6 +2,8 @@
 
 | Action | Shortcut |
 |---|---|
+| Select all editor text | `Ctrl+A` |
+| Copy / Cut / Paste | `Ctrl+C` / `Ctrl+X` / `Ctrl+V` |
 | New Fleeting | `Ctrl+Shift+N` |
 | New Permanent | `Ctrl+Shift+I` |
 | New Entry-Point | `Ctrl+Shift+O` |

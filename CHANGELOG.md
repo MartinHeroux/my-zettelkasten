@@ -1,3 +1,7 @@
+# v0.5.7
+
+Added explicit editor Ctrl+A/C/X/V bindings and Edit menu. Keep selection visible after focus changes; cut/paste have undo boundaries and handle an empty clipboard or absent selection. Ctrl+P unchanged.
+
 # v0.5.6
 
 Removed literature creation/filter and reference-to-note browser; preserved citation completion. Removed Discard toolbar button; added Note-menu permanent deletion for any open note. Trash restores new Inbox entries to Inbox. Legacy literature files remain intact, displayed as Uncategorised. Recovery behaviour unchanged (ten previous saved versions per note). Updated guides and onboarding.

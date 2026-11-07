@@ -105,6 +105,7 @@ class EditorApp:
         self.text.bind("<Control-Return>", self._follow_at_cursor, add="+")
         self.text.bind("<Control-Button-1>", self._follow_at_cursor, add="+")
         self._install_shortcuts()
+        self._install_edit_shortcuts()
         self._set_status("Ready — Idea or Open a Markdown note")
         self._update_history_buttons()
 
@@ -189,7 +190,9 @@ class EditorApp:
         self.incoming_list.bind("<Double-Button-1>", lambda e: self._open_relation(self.incoming_list, self.incoming_paths))
         self.text = tk.Text(frame, wrap="word", undo=True, maxundo=500, autoseparators=True,
                             padx=16, pady=16, relief="flat", borderwidth=0, insertwidth=2,
-                            tabs=("2c",))
+                            tabs=("2c",), exportselection=False,
+                            selectbackground="#3478c6", selectforeground="white",
+                            inactiveselectbackground="#3478c6")
         scroller = ttk.Scrollbar(frame, orient="vertical", command=self.text.yview)
         self.text.configure(yscrollcommand=scroller.set)
         scroller.pack(side="right", fill="y")
@@ -231,6 +234,47 @@ class EditorApp:
     def _focus_sidebar_search(self):
         self.sidebar_search.focus_set()
         self.sidebar_search.select_range(0, 'end')
+
+    def _install_edit_shortcuts(self):
+        # Widget bindings run before Tk's platform-specific Text class bindings.
+        for letter, action in (('a', 'select_all'), ('c', 'copy'),
+                               ('x', 'cut'), ('v', 'paste')):
+            for key in (letter, letter.upper()):
+                self.text.bind(f'<Control-{key}>',
+                               lambda event, name=action: self._edit_action(name))
+
+    def _edit_action(self, action):
+        self._close_popup()
+        self.text.focus_set()
+        if action == 'select_all':
+            self.text.tag_add('sel', '1.0', 'end-1c')
+            self.text.tag_raise('sel')
+            self.text.mark_set('insert', 'end-1c')
+            return 'break'
+        selection = self.text.tag_ranges('sel')
+        if action in ('copy', 'cut'):
+            if not selection:
+                return 'break'
+            value = self.text.get('sel.first', 'sel.last')
+            self.text.clipboard_clear()
+            self.text.clipboard_append(value)
+            if action == 'cut':
+                self.text.edit_separator()
+                self.text.delete('sel.first', 'sel.last')
+                self.text.edit_separator()
+        elif action == 'paste':
+            try:
+                value = self.text.clipboard_get()
+            except tk.TclError:
+                return 'break'
+            self.text.edit_separator()
+            if selection:
+                self.text.mark_set('insert', 'sel.first')
+                self.text.delete('sel.first', 'sel.last')
+            self.text.insert('insert', value)
+            self.text.edit_separator()
+            self.text.see('insert')
+        return 'break'
 
     def _install_shortcuts(self):
         shortcuts = {
@@ -278,6 +322,17 @@ class EditorApp:
         filemenu.add_separator()
         filemenu.add_command(label='Exit', command=self.close)
         menu.add_cascade(label='File', menu=filemenu)
+
+        editmenu = tk.Menu(menu, tearoff=False)
+        for label, action, shortcut in (
+            ('Select All', 'select_all', 'Ctrl+A'),
+            ('Copy', 'copy', 'Ctrl+C'),
+            ('Cut', 'cut', 'Ctrl+X'),
+            ('Paste', 'paste', 'Ctrl+V'),
+        ):
+            editmenu.add_command(label=label, accelerator=shortcut,
+                                 command=lambda name=action: self._edit_action(name))
+        menu.add_cascade(label='Edit', menu=editmenu)
 
         notemenu = tk.Menu(menu, tearoff=False)
         for label, action, shortcut in (
@@ -344,6 +399,7 @@ class EditorApp:
             'New Fleeting: Ctrl+Shift+N\nNew Permanent: Ctrl+Shift+I\n'
             'New Entry-Point: Ctrl+Shift+O\nNew Project: Ctrl+Shift+J\n'
             'New linked note: Ctrl+Shift+L\nAttach: Ctrl+Shift+A\n'
+            'Select all: Ctrl+A\nCopy / Cut / Paste: Ctrl+C / Ctrl+X / Ctrl+V\n'
             'Save: Ctrl+S\nOpen: Ctrl+O\nSearch notes: Ctrl+Shift+F\n'
             'Find in note: Ctrl+F\nBack / Forward: Alt+Left / Alt+Right\n'
             'Pin / Unpin: Ctrl+Shift+K\nUndo / Redo: Ctrl+Z / Ctrl+Y\n'
